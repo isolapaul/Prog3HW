@@ -8,53 +8,304 @@ import java.io.Serializable;
 import java.util.*;
 
 /**
- * Central data store that holds all runtime data and is Serializable.
- * The application will persist this whole object to a single .dat file.
+ * KÖZPONTI ADATTÁROLÓ OSZTÁLY (DataStore)
+ * 
+ * Ez az osztály az EGÉSZ ALKALMAZÁS ADATAIT tárolja egyetlen objektumban!
+ * 
+ * MIÉRT VAN RÁ SZÜKSÉG?
+ * - Minden adat (felhasználók, üzenetek, csoportok) EGY HELYEN van
+ * - Az EGÉSZ objektumot tudjuk menteni fájlba (Java szerializáció)
+ * - Egyszerű és átlátható adatkezelés
+ * 
+ * HOGYAN MŰKÖDIK?
+ * Képzeld el egy NAGY KONTÉNERNEK, amiben minden adat benne van:
+ * - Felhasználók (név és ID szerint is kereshető)
+ * - Barátságok (ki kivel barát)
+ * - Barátkérések (bejövő és kimenő)
+ * - Csoportok (összes csoport ID szerint)
+ * - Üzenetek (privát és csoport üzenetek külön)
+ * 
+ * MIÉRT SERIALIZABLE?
+ * Hogy az egész objektumot le tudjuk menteni fájlba, és később
+ * vissza tudjuk tölteni PONTOSAN UGYANAZZAL AZ ÁLLAPOTTAL.
  */
 public class DataStore implements Serializable {
 
+    // Fájl mentéshez szükséges verzió azonosító
     private static final long serialVersionUID = 1L;
 
+    // ============================================================
+    // FELHASZNÁLÓ TÁROLÁS - KÉT FÉLE KERESÉSHEZ
+    // ============================================================
+    
+    /**
+     * FELHASZNÁLÓK FELHASZNÁLÓNÉV SZERINT
+     * Map típus: Kulcs = username (String), Érték = User objektum
+     * 
+     * MIÉRT KELL?
+     * Amikor bejelentkezünk, felhasználónévvel keresünk.
+     * A HashMap gyors keresést biztosít: O(1) idő!
+     * 
+     * PÉLDA:
+     * {
+     *   "anna" -> User{id=uuid1, username="anna", password="..."},
+     *   "bela" -> User{id=uuid2, username="bela", password="..."}
+     * }
+     */
     private final Map<String, User> usersByName = new HashMap<>();
+    
+    /**
+     * FELHASZNÁLÓK ID SZERINT
+     * Map típus: Kulcs = userId (UUID), Érték = User objektum
+     * 
+     * MIÉRT KELL?
+     * Az üzeneteknél csak az ID-t tároljuk (nem a teljes User objektumot).
+     * Így gyorsan megtaláljuk, hogy ki küldte az üzenetet.
+     * 
+     * PÉLDA:
+     * {
+     *   uuid1 -> User{id=uuid1, username="anna", ...},
+     *   uuid2 -> User{id=uuid2, username="bela", ...}
+     * }
+     */
     private final Map<UUID, User> usersById = new HashMap<>();
-    // friendships: username -> set of friend usernames
+    
+    // ============================================================
+    // BARÁTSÁG KEZELÉS
+    // ============================================================
+    
+    /**
+     * BARÁTSÁGOK TÁROLÁSA
+     * Map<String, Set<String>> = Minden felhasználónak van egy halmaza barátokról
+     * 
+     * MIÉRT SET?
+     * - Egy ember csak egyszer lehet barát (nincs duplikáció)
+     * - Gyors ellenőrzés: barát-e valaki
+     * 
+     * PÉLDA:
+     * {
+     *   "anna" -> {"bela", "cecil"},  // Anna barátai: Béla és Cecil
+     *   "bela" -> {"anna", "dora"},   // Béla barátai: Anna és Dóra
+     *   "cecil" -> {"anna"}           // Cecil barátja: Anna
+     * }
+     * 
+     * FONTOS! A barátság KÉTIRÁNYÚ:
+     * Ha Anna barátja Bélának, akkor Béla is barátja Annának.
+     * Mindkét irányban benne kell lennie!
+     */
     private final Map<String, Set<String>> friends = new HashMap<>();
-    // incoming friend requests: username -> set of usernames who requested
+    
+    /**
+     * BEJÖVŐ BARÁTKÉRÉSEK
+     * Ki kér barátságot TŐLEM?
+     * 
+     * PÉLDA:
+     * {
+     *   "bela" -> {"anna", "cecil"},  // Béla két kérést kapott: Annától és Ceciltől
+     *   "dora" -> {"bela"}            // Dóra egy kérést kapott: Bélától
+     * }
+     */
     private final Map<String, Set<String>> incomingFriendRequests = new HashMap<>();
-    // outgoing friend requests: username -> set of usernames this user has requested
+    
+    /**
+     * KIMENŐ BARÁTKÉRÉSEK
+     * KINEK küldtem barátkérést?
+     * 
+     * PÉLDA:
+     * {
+     *   "anna" -> {"bela"},    // Anna küldött kérést Bélának
+     *   "cecil" -> {"bela"}    // Cecil küldött kérést Bélának
+     * }
+     * 
+     * FONTOS! Ugyanaz a kapcsolat két helyen is szerepel:
+     * - incomingFriendRequests["bela"] tartalmazza "anna"-t
+     * - outgoingFriendRequests["anna"] tartalmazza "bela"-t
+     * Ez azért kell, hogy mindkét irányból gyorsan lehessen keresni!
+     */
     private final Map<String, Set<String>> outgoingFriendRequests = new HashMap<>();
 
+    // ============================================================
+    // CSOPORT TÁROLÁS
+    // ============================================================
+    
+    /**
+     * ÖSSZES CSOPORT
+     * Map<UUID, Group> = Csoport ID -> Group objektum
+     * 
+     * PÉLDA:
+     * {
+     *   uuid5 -> Group{id=uuid5, name="Prog3 csoport", members=...},
+     *   uuid6 -> Group{id=uuid6, name="Barátok", members=...}
+     * }
+     */
     private final Map<UUID, Group> groups = new HashMap<>();
 
-    // For simplicity, private conversations are represented by sorted pair key
+    // ============================================================
+    // ÜZENET TÁROLÁS
+    // ============================================================
+    
+    /**
+     * PRIVÁT ÜZENETEK (két felhasználó között)
+     * Map<String, List<Message>> = beszélgetés kulcs -> üzenetek listája
+     * 
+     * MIÉRT ILYEN BONYOLULT A KULCS?
+     * Két felhasználó közti beszélgetéshez kell egy egyedi kulcs.
+     * Probléma: Anna->Béla és Béla->Anna UGYANAZ a beszélgetés!
+     * 
+     * MEGOLDÁS: Rendezett kulcs
+     * - Anna és Béla közti beszélgetés: "anna#bela"
+     * - Béla és Anna közti beszélgetés: szintén "anna#bela" (ABC sorrendben!)
+     * Lásd: privateKey() metódus
+     * 
+     * PÉLDA:
+     * {
+     *   "anna#bela" -> [
+     *     Message{senderId=annaId, content="Szia Béla!"},
+     *     Message{senderId=belaId, content="Helló Anna!"}
+     *   ],
+     *   "bela#cecil" -> [
+     *     Message{senderId=belaId, content="Hogy vagy?"}
+     *   ]
+     * }
+     */
     private final Map<String, List<Message>> privateMessages = new HashMap<>();
+    
+    /**
+     * CSOPORT ÜZENETEK
+     * Map<UUID, List<Message>> = csoport ID -> üzenetek listája
+     * 
+     * EGYSZERŰBB mint a privát!
+     * Minden csoportnak van egy ID-ja, azon keresztül keresünk.
+     * 
+     * PÉLDA:
+     * {
+     *   groupId1 -> [
+     *     Message{senderId=annaId, content="Sziasztok!"},
+     *     Message{senderId=belaId, content="Helló!"}
+     *   ]
+     * }
+     */
     private final Map<UUID, List<Message>> groupMessages = new HashMap<>();
 
+    /**
+     * KONSTRUKTOR
+     * Üres konstruktor - a mezők már inicializálva vannak (new HashMap<>())
+     * amikor az objektumot létrehozzuk.
+     */
     public DataStore() {
-        // default constructor - collections are initialized in field declarations
+        // Az összes Map és Set már létrejött a field inicializálásakor
     }
 
-    // Register a new user; returns false if username exists
+    // ============================================================
+    // FELHASZNÁLÓ MŰVELETEK
+    // ============================================================
+    
+    /**
+     * ÚJ FELHASZNÁLÓ REGISZTRÁLÁSA
+     * 
+     * LÉPÉSEK:
+     * 1. Ellenőrzés: van-e username, nem-e üres
+     * 2. Ellenőrzés: nem foglalt-e már a username
+     * 3. Létrehozunk egy új User objektumot
+     * 4. Hozzáadjuk MINDKÉT Map-hez (név szerint ÉS ID szerint)
+     * 5. Létrehozunk neki ÜRES halmazokat (barátok, kérések)
+     * 6. Visszaadjuk, hogy sikeres volt-e
+     * 
+     * MIÉRT KELL ÜRES HALMAZOKAT KÉSZÍTENI?
+     * Később egyszerűbb, ha már létezik a halmaz, csak hozzáadunk/elveszünk belőle.
+     * Nem kell mindig ellenőrizni, hogy létezik-e már.
+     * 
+     * @param username A felhasználónév (pl. "anna")
+     * @param passwordHash A jelszó (egyszerűsített verzió)
+     * @return true = sikeres regisztráció, false = hiba (pl. foglalt név)
+     */
     public boolean registerUser(String username, String passwordHash) {
-        if (username == null || username.isBlank()) return false;
-        if (usersByName.containsKey(username)) return false;
+        // 1. ELLENŐRZÉS: van-e username, nem-e üres
+        if (username == null || username.isBlank()) {
+            return false; // Üres username nem megengedett
+        }
+        
+        // 2. ELLENŐRZÉS: nincs-e már ilyen felhasználó
+        if (usersByName.containsKey(username)) {
+            return false; // Már foglalt a név
+        }
+        
+        // 3. ÚJ USER LÉTREHOZÁSA
         User u = new User(username, passwordHash);
-        usersByName.put(username, u);
-        usersById.put(u.getId(), u);
+        
+        // 4. HOZZÁADÁS MINDKÉT MAP-HEZ
+        usersByName.put(username, u);  // Név szerint kereséshez
+        usersById.put(u.getId(), u);   // ID szerint kereséshez
+        
+        // 5. ÜRES HALMAZOK INICIALIZÁLÁSA
+        // Még nincs barátja, még nincsenek kérései
         friends.put(username, new HashSet<>());
         incomingFriendRequests.put(username, new HashSet<>());
         outgoingFriendRequests.put(username, new HashSet<>());
-        return true;
+        
+        return true; // Sikeres regisztráció
     }
 
-    // Authenticate simple check (hash equality)
+    /**
+     * BEJELENTKEZÉS ELLENŐRZÉSE (AUTENTIKÁCIÓ)
+     * 
+     * HOGYAN MŰKÖDIK?
+     * 1. Megkeressük a felhasználót név szerint
+     * 2. Ha nem létezik, false (rossz username)
+     * 3. Összehasonlítjuk a jelszavakat
+     * 4. Ha egyeznek, true (sikeres bejelentkezés)
+     * 
+     * MIÉRT Objects.equals()?
+     * Ez biztonságosan összehasonlít két objektumot, még akkor is,
+     * ha valamelyik null. A == operátor nem biztonságos String-eknél!
+     * 
+     * @param username A felhasználónév
+     * @param passwordHash A jelszó
+     * @return true = helyes jelszó, false = rossz username vagy jelszó
+     */
     public boolean authenticateUser(String username, String passwordHash) {
+        // 1. Keresés a felhasználók között
         User u = usersByName.get(username);
-        if (u == null) return false;
+        
+        // 2. Ha nem létezik, nincs mit ellenőrizni
+        if (u == null) {
+            return false; // Nincs ilyen felhasználó
+        }
+        
+        // 3. Jelszó összehasonlítás
+        // Objects.equals() biztonságosan kezeli a null-t is
         return Objects.equals(u.getPasswordHash(), passwordHash);
     }
 
+    /**
+     * FELHASZNÁLÓ KERESÉSE NÉV SZERINT
+     * 
+     * MIÉRT Optional?
+     * Az Optional azt jelenti: "lehet, hogy van eredmény, lehet, hogy nincs".
+     * Ez biztonságosabb, mint null-t visszaadni, mert:
+     * - Explicit jelzi, hogy lehet null
+     * - Lambda-kkal könnyebb dolgozni
+     * - Kényszeri a null ellenőrzést
+     * 
+     * HASZNÁLAT:
+     * Optional<User> userOpt = findUserByName("anna");
+     * if (userOpt.isPresent()) {
+     *     User user = userOpt.get();
+     *     // ... dolgozunk a user-rel ...
+     * }
+     * 
+     * VAGY:
+     * findUserByName("anna").ifPresent(user -> {
+     *     // ... dolgozunk a user-rel ...
+     * });
+     * 
+     * @param username A keresett felhasználónév
+     * @return Optional<User> - vagy tartalmaz egy User-t, vagy üres
+     */
     public Optional<User> findUserByName(String username) {
+        // Optional.ofNullable() azt jelenti:
+        // - Ha a get() eredménye nem null, Optional-ba csomagolja
+        // - Ha null, üres Optional-t ad vissza (Optional.empty())
         return Optional.ofNullable(usersByName.get(username));
     }
 
