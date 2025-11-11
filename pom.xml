@@ -12,6 +12,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.jupiter.version>5.9.3</junit.jupiter.version>
         <sonar.organization>isolapaul</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.projectKey>isolapaul_prog3</sonar.projectKey>
         
     </properties>
     <dependencies>
@@ -32,6 +34,33 @@
     </dependencies>
     <build>
         <plugins>
+            <!-- JaCoCo for test coverage (XML report at verify) -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Limit instrumentation strictly to our application packages to avoid JDK classes (Java 24) -->
+                            <includes>
+                                <include>hu/prog3/**</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -69,6 +98,12 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <!-- Pin Sonar Maven plugin version to avoid warnings (invoked via CLI) -->
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>5.3.0.6276</version>
             </plugin>
         </plugins>
     </build>

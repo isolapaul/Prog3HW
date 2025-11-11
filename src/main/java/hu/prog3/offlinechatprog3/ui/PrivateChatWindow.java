@@ -3,93 +3,41 @@ package hu.prog3.offlinechatprog3.ui;
 import hu.prog3.offlinechatprog3.controller.AppController;
 import hu.prog3.offlinechatprog3.model.Message;
 
-import javax.swing.*;
-import java.awt.*;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A simple private chat window between two users.
  * Shows past messages and allows sending new ones.
  */
-public class PrivateChatWindow extends JFrame {
+public class PrivateChatWindow extends BaseChatWindow {
 
-    private final transient AppController controller;
-    private final String me;
     private final String other;
 
-    private final JTextArea chatArea = new JTextArea(20, 50);
-    private final JTextField inputField = new JTextField(36);
-    private final JButton sendButton = new JButton("Küldés");
-    private javax.swing.Timer liveTimer;
-    private int lastCount = -1;
-
     public PrivateChatWindow(AppController controller, String me, String other) {
-        super("Chat: " + me + " <--> " + other);
-        this.controller = controller;
-        this.me = me;
+        super(controller, me, "Chat: " + me + " <--> " + other);
         this.other = other;
-        initComponents();
-        bindEvents();
-        loadMessages();
-        startLive();
-        pack();
-        setLocationRelativeTo(null);
     }
 
-    private void initComponents() {
-        chatArea.setEditable(false);
-        JPanel bottom = new JPanel();
-        bottom.add(inputField);
-        bottom.add(sendButton);
-        getContentPane().setLayout(new BorderLayout());
-        getContentPane().add(new JScrollPane(chatArea), BorderLayout.CENTER);
-        getContentPane().add(bottom, BorderLayout.SOUTH);
+    @Override
+    protected List<Message> fetchMessages() {
+        return controller.getPrivateMessages(me, other);
     }
 
-    private void bindEvents() {
-        sendButton.addActionListener(e -> sendMessage());
-        inputField.addActionListener(e -> sendMessage());
+    @Override
+    protected boolean canSendNow() {
+        Set<String> friends = controller.getFriendsOf(me);
+        return friends != null && friends.contains(other);
     }
 
-    private void sendMessage() {
-        String text = inputField.getText().trim();
-        if (text.isEmpty()) return;
-        boolean ok = controller.sendPrivateMessage(me, other, text);
-        if (!ok) {
-            JOptionPane.showMessageDialog(this, "Nem sikerült üzenetet küldeni.", "Hiba", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        inputField.setText("");
-        loadMessages();
-    }
-
-    private void loadMessages() {
-        List<Message> msgs = controller.getPrivateMessages(me, other);
-        ChatUi.renderMessagesWithTime(chatArea, msgs, controller::getUsernameForId, me, "");
-        lastCount = msgs.size();
-    }
-
-    private void startLive() {
-        liveTimer = new javax.swing.Timer(1500, e -> {
-            List<Message> msgs = controller.getPrivateMessages(me, other);
-            if (msgs.size() != lastCount) {
-                loadMessages();
-            }
-        });
-        liveTimer.setRepeats(true);
-        liveTimer.start();
-        this.addWindowListener(new java.awt.event.WindowAdapter() {
-            @Override public void windowClosing(java.awt.event.WindowEvent e) { if (liveTimer!=null) liveTimer.stop(); }
-            @Override public void windowClosed(java.awt.event.WindowEvent e) { if (liveTimer!=null) liveTimer.stop(); }
-        });
+    @Override
+    protected boolean sendInternal(String text) {
+        return controller.sendPrivateMessage(me, other, text);
     }
 
     /** Called by MainFrame polling loop to refresh if window visible */
     public void refreshIfVisible() {
         if (!isVisible()) return;
-        List<Message> msgs = controller.getPrivateMessages(me, other);
-        if (msgs.size() != lastCount) {
-            loadMessages();
-        }
+        reloadMessages();
     }
 }
