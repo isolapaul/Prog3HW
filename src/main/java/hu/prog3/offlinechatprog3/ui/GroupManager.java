@@ -70,11 +70,8 @@ public class GroupManager extends JDialog {
     }
 
     private void showMessagesDialog() {
-        GroupItem sel = groupsList.getSelectedValue();
-        if (sel == null) {
-            JOptionPane.showMessageDialog(this, SELECT_GROUP_MSG, UiMessages.WARN_TITLE, JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        GroupItem sel = requireSelectedGroup();
+        if (sel == null) return;
         if (!controller.hasGroupPermission(sel.id, username, hu.prog3.offlinechatprog3.model.Permissions.GROUP_DELETE_MESSAGES)) {
             JOptionPane.showMessageDialog(this, UiMessages.NO_PERM_DELETE_MSG, UiMessages.WARN_TITLE, JOptionPane.WARNING_MESSAGE);
             return;
@@ -137,11 +134,8 @@ public class GroupManager extends JDialog {
     }
 
     private void showMembersDialog() {
-        GroupItem sel = groupsList.getSelectedValue();
-        if (sel == null) {
-            JOptionPane.showMessageDialog(this, SELECT_GROUP_MSG, "Hiba", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        GroupItem sel = requireSelectedGroup();
+        if (sel == null) return;
         UUID id = sel.id;
         java.util.Set<String> members = controller.getGroupMembers(id);
 
@@ -258,22 +252,16 @@ public class GroupManager extends JDialog {
     }
 
     private void openSelectedGroupChat() {
-        GroupItem sel = groupsList.getSelectedValue();
-        if (sel == null) {
-            JOptionPane.showMessageDialog(this, SELECT_GROUP_MSG, UiMessages.WARN_TITLE, JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        GroupItem sel = requireSelectedGroup();
+        if (sel == null) return;
         UUID id = sel.id;
         GroupChatWindow win = new GroupChatWindow(controller, id, username, sel.name);
         win.setVisible(true);
     }
 
     private void deleteSelectedGroup() {
-        GroupItem sel = groupsList.getSelectedValue();
-        if (sel == null) {
-            JOptionPane.showMessageDialog(this, SELECT_GROUP_MSG, "Hiba", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        GroupItem sel = requireSelectedGroup();
+        if (sel == null) return;
         int confirm = JOptionPane.showConfirmDialog(this, "Biztosan törlöd a csoportot?", "Megerősítés", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) return;
         boolean ok = controller.deleteGroup(sel.id, username);
@@ -282,5 +270,15 @@ public class GroupManager extends JDialog {
         } else {
             loadGroups();
         }
+    }
+
+    // Small helper to reduce duplication: require a selected group or warn and return null
+    private GroupItem requireSelectedGroup() {
+        GroupItem sel = groupsList.getSelectedValue();
+        if (sel == null) {
+            JOptionPane.showMessageDialog(this, SELECT_GROUP_MSG, UiMessages.WARN_TITLE, JOptionPane.WARNING_MESSAGE);
+            return null;
+        }
+        return sel;
     }
 }

@@ -219,11 +219,8 @@ public class MainFrame extends JFrame {
     }
 
     private void sendToFriend(String text) {
-        String friend = friendsList.getSelectedValue();
-        if (friend == null) {
-                    JOptionPane.showMessageDialog(MainFrame.this, UiMessages.SELECT_FRIEND, UiMessages.WARN_TITLE, JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        String friend = requireSelectedFriend();
+        if (friend == null) return;
         boolean ok = controller.sendPrivateMessage(username, friend, text);
         if (!ok) {
             JOptionPane.showMessageDialog(MainFrame.this, "Nem sikerült üzenetet küldeni. Ellenőrizd, hogy barátok vagytok.", "Hiba", JOptionPane.ERROR_MESSAGE);
@@ -234,11 +231,8 @@ public class MainFrame extends JFrame {
     }
 
     private void sendToGroup(String text) {
-        GroupItem gi = groupsList.getSelectedValue();
-        if (gi == null) {
-                    JOptionPane.showMessageDialog(MainFrame.this, UiMessages.SELECT_GROUP, UiMessages.WARN_TITLE, JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        GroupItem gi = requireSelectedGroup();
+        if (gi == null) return;
                 if (!controller.hasGroupPermission(gi.id, username, hu.prog3.offlinechatprog3.model.Permissions.GROUP_SEND_MESSAGE)) {
                     JOptionPane.showMessageDialog(MainFrame.this, UiMessages.NO_PERM_SEND_GROUP, UiMessages.WARN_TITLE, JOptionPane.WARNING_MESSAGE);
             return;
@@ -529,5 +523,24 @@ public class MainFrame extends JFrame {
             boolean enabled = gi != null && controller.hasGroupPermission(gi.id, username, hu.prog3.offlinechatprog3.model.Permissions.GROUP_SEND_MESSAGE);
             sendButton.setEnabled(enabled);
         }
+    }
+
+    // Small helpers to reduce duplication when requiring a selection
+    private String requireSelectedFriend() {
+        String friend = friendsList.getSelectedValue();
+        if (friend == null) {
+            JOptionPane.showMessageDialog(this, UiMessages.SELECT_FRIEND, UiMessages.WARN_TITLE, JOptionPane.WARNING_MESSAGE);
+            return null;
+        }
+        return friend;
+    }
+
+    private GroupItem requireSelectedGroup() {
+        GroupItem gi = groupsList.getSelectedValue();
+        if (gi == null) {
+            JOptionPane.showMessageDialog(this, UiMessages.SELECT_GROUP, UiMessages.WARN_TITLE, JOptionPane.WARNING_MESSAGE);
+            return null;
+        }
+        return gi;
     }
 }
