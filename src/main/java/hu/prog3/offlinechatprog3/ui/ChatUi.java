@@ -10,10 +10,43 @@ import java.util.UUID;
 import java.util.function.Function;
 
 /**
- * Small UI helper to render message lists consistently in text areas.
- * Centralizing this trims duplicate lines across windows and the main frame.
+ * CHAT UI HELPER OSZTÁLY (ChatUi)
+ * 
+ * Ez egy UTILITY (segéd) osztály, ami STATIKUS METÓDUSOKAT tartalmaz
+ * az üzenetek MEGJELENÍTÉSÉHEZ.
+ * 
+ * MIÉRT VAN RÁ SZÜKSÉG?
+ * Több helyen is meg kell jeleníteni üzeneteket:
+ * - PrivateChatWindow chat területe
+ * - GroupChatWindow chat területe
+ * - MainFrame előnézeti területe
+ * 
+ * Ha mindenhol külön írnánk a renderelő kódot, DUPLIKÁCIÓ lenne.
+ * Ez az osztály CENTRALIZÁLJA ezt a logikát → könnyebb karbantartani.
+ * 
+ * MIÉRT FINAL?
+ * Mert NEM LEHET ÖRÖKÖLNI belőle (nem kell, mert csak statikus metódusok vannak).
+ * 
+ * MIÉRT PRIVATE KONSTRUKTOR?
+ * Mert NEM LEHET PÉLDÁNYOSÍTANI (new ChatUi() nem működik).
+ * Ez egy TISZTÁN STATIKUS osztály, mint a Math.
+ * 
+ * HASZNÁLAT:
+ * ChatUi.renderMessagesSimple(...)
+ * ChatUi.renderMessagesWithTime(...)
+ * 
+ * Nem kell létrehozni objektumot, csak meghívni a statikus metódusokat.
  */
 public final class ChatUi {
+    
+    /**
+     * PRIVATE KONSTRUKTOR - megakadályozza a példányosítást
+     * 
+     * Ha valaki megpróbálná:
+     * ChatUi helper = new ChatUi(); // FORDÍTÁSI HIBA!
+     * 
+     * Ez jelzi, hogy ez egy UTILITY osztály.
+     */
     private ChatUi() {}
 
     /**

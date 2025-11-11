@@ -365,8 +365,8 @@ public abstract class BaseChatWindow extends JFrame {
         List<Message> msgs = fetchMessages();
         
         // 2. Üzenetek renderelése - ID → név konverzióval
-        //    this::resolveUser = method reference (UUID → String)
-        ChatUi.renderMessagesWithTime(chatArea, msgs, this::resolveUser, me, "");
+        // Lambda: minden üzenet feladó ID-jából megcsináljuk a nevet
+        ChatUi.renderMessagesWithTime(chatArea, msgs, id -> resolveUser(id), me, "");
         
         // 3. Üzenetszám eltárolása (élő frissítéshez)
         lastCount = msgs.size();

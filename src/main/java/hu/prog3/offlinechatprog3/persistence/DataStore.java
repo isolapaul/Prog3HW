@@ -406,8 +406,13 @@ public class DataStore implements Serializable {
     public UUID createGroup(String name, String creatorUsername) {
         Group g = new Group(name);
         groups.put(g.getId(), g);
-        // add creator as Admin
-        Optional.ofNullable(usersByName.get(creatorUsername)).ifPresent(u -> g.addMember(u.getId(), "Adminisztrátor"));
+        
+        // Létrehozó hozzáadása Adminisztrátor szerepkörrel
+        User creator = usersByName.get(creatorUsername);
+        if (creator != null) {
+            g.addMember(creator.getId(), "Adminisztrátor");
+        }
+        
         return g.getId();
     }
 
@@ -509,22 +514,75 @@ public class DataStore implements Serializable {
     }
 
     public void sendPrivateMessage(String fromUsername, String toUsername, String content) {
+        // Beszélgetés kulcs létrehozása (pl. "anna#bela")
         String key = privateKey(fromUsername, toUsername);
-        Message m = new Message(usersByName.get(fromUsername).getId(), null, content);
-        privateMessages.computeIfAbsent(key, k -> new ArrayList<>()).add(m);
+        
+        // Feladó User objektumának lekérése
+        User sender = usersByName.get(fromUsername);
+        
+        // Új üzenet létrehozása (conversationId = null, mert privát chat)
+        Message m = new Message(sender.getId(), null, content);
+        
+        // Megnézzük, van-e már üzenet lista ehhez a beszélgetéshez
+        List<Message> messages = privateMessages.get(key);
+        
+        // Ha nincs, létrehozunk egy üres listát
+        if (messages == null) {
+            messages = new ArrayList<>();
+            privateMessages.put(key, messages);
+        }
+        
+        // Hozzáadjuk az új üzenetet
+        messages.add(m);
     }
 
     public List<Message> getPrivateMessages(String a, String b) {
-        return privateMessages.getOrDefault(privateKey(a, b), Collections.emptyList());
+        // Lekérjük a beszélgetés kulcsát (pl. "anna#bela")
+        String key = privateKey(a, b);
+        
+        // Megnézzük, van-e már üzenet lista ehhez a beszélgetéshez
+        List<Message> messages = privateMessages.get(key);
+        
+        // Ha nincs (null), akkor visszaadunk egy üres listát
+        if (messages == null) {
+            return Collections.emptyList();
+        }
+        
+        // Ha van, visszaadjuk az üzeneteket
+        return messages;
     }
 
     public void sendGroupMessage(UUID groupId, String fromUsername, String content) {
-        Message m = new Message(usersByName.get(fromUsername).getId(), groupId, content);
-        groupMessages.computeIfAbsent(groupId, k -> new ArrayList<>()).add(m);
+        // Lekérjük a feladó User objektumát név alapján
+        User sender = usersByName.get(fromUsername);
+        
+        // Létrehozunk egy új Message objektumot
+        Message m = new Message(sender.getId(), groupId, content);
+        
+        // Megnézzük, van-e már üzenet lista ehhez a csoporthoz
+        List<Message> messages = groupMessages.get(groupId);
+        
+        // Ha nincs, létrehozunk egy üres listát
+        if (messages == null) {
+            messages = new ArrayList<>();
+            groupMessages.put(groupId, messages);
+        }
+        
+        // Hozzáadjuk az új üzenetet a listához
+        messages.add(m);
     }
 
     public List<Message> getGroupMessages(UUID groupId) {
-        return groupMessages.getOrDefault(groupId, Collections.emptyList());
+        // Lekérjük a csoport üzeneteit
+        List<Message> messages = groupMessages.get(groupId);
+        
+        // Ha nincs (null), üres listát adunk vissza
+        if (messages == null) {
+            return Collections.emptyList();
+        }
+        
+        // Ha van, visszaadjuk az üzeneteket
+        return messages;
     }
 
     /** Delete a single message from a group's message list by message id. */

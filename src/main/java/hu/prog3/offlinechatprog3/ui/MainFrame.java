@@ -462,13 +462,17 @@ public class MainFrame extends JFrame {
     // Load conversation with a friend and show messages in the chat area
     private void loadFriendConversation(String friend) {
         List<Message> msgs = controller.getPrivateMessages(username, friend);
-        ChatUi.renderMessagesSimple(chatArea, msgs, controller::getUsernameForId, "");
+        // Lambda helyett method reference - de egyszerűbben:
+        // Ez egy függvény, ami UUID-ból username-et csinál
+        ChatUi.renderMessagesSimple(chatArea, msgs, id -> controller.getUsernameForId(id), "");
     }
 
     // Load conversation with a group and show messages in the chat area
     private void loadGroupConversation(UUID groupId, String groupName) {
         List<Message> msgs = controller.getGroupMessages(groupId);
-        ChatUi.renderMessagesSimple(chatArea, msgs, controller::getUsernameForId, "[" + groupName + "] ");
+        // Csoport előnézet prefix-szel: "[Csoport név] "
+        String prefix = "[" + groupName + "] ";
+        ChatUi.renderMessagesSimple(chatArea, msgs, id -> controller.getUsernameForId(id), prefix);
     }
 
     // Refresh the friends list from controller
