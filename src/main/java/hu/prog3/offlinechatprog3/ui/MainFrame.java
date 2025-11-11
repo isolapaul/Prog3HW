@@ -467,24 +467,14 @@ public class MainFrame extends JFrame {
 
     // Load conversation with a friend and show messages in the chat area
     private void loadFriendConversation(String friend) {
-        chatArea.setText("");
         List<Message> msgs = controller.getPrivateMessages(username, friend);
-        for (Message m : msgs) {
-            String who = controller.getUsernameForId(m.getSenderId());
-            if (who == null) who = "?";
-            chatArea.append(who + ": " + m.getContent() + "\n");
-        }
+        ChatUi.renderMessagesSimple(chatArea, msgs, controller::getUsernameForId, "");
     }
 
     // Load conversation with a group and show messages in the chat area
     private void loadGroupConversation(UUID groupId, String groupName) {
-        chatArea.setText("");
         List<Message> msgs = controller.getGroupMessages(groupId);
-        for (Message m : msgs) {
-            String who = controller.getUsernameForId(m.getSenderId());
-            if (who == null) who = "?";
-            chatArea.append("[" + groupName + "] " + who + ": " + m.getContent() + "\n");
-        }
+        ChatUi.renderMessagesSimple(chatArea, msgs, controller::getUsernameForId, "[" + groupName + "] ");
     }
 
     // Refresh the friends list from controller

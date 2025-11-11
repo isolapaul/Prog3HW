@@ -5,8 +5,6 @@ import hu.prog3.offlinechatprog3.model.Message;
 
 import javax.swing.*;
 import java.awt.*;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
@@ -70,17 +68,8 @@ public class GroupChatWindow extends JFrame {
     }
 
     private void loadMessages() {
-        chatArea.setText("");
         List<Message> msgs = controller.getGroupMessages(groupId);
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneId.systemDefault());
-        for (Message m : msgs) {
-            String who = controller.getUsernameForId(m.getSenderId());
-            if (who == null) who = "?";
-            String label = who.equals(me) ? "Én" : who;
-            String time = m.getTimestamp() == null ? "" : fmt.format(m.getTimestamp());
-            chatArea.append(String.format("[%s] %s: %s%n", time, label, m.getContent()));
-        }
-        chatArea.setCaretPosition(chatArea.getDocument().getLength());
+        ChatUi.renderMessagesWithTime(chatArea, msgs, controller::getUsernameForId, me, "");
         lastCount = msgs.size();
     }
 

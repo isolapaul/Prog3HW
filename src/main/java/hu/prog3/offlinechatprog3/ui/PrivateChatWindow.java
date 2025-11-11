@@ -5,8 +5,6 @@ import hu.prog3.offlinechatprog3.model.Message;
 
 import javax.swing.*;
 import java.awt.*;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -66,18 +64,8 @@ public class PrivateChatWindow extends JFrame {
     }
 
     private void loadMessages() {
-        chatArea.setText("");
         List<Message> msgs = controller.getPrivateMessages(me, other);
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneId.systemDefault());
-        for (Message m : msgs) {
-            String who = controller.getUsernameForId(m.getSenderId());
-            if (who == null) who = "?";
-            String label = who.equals(me) ? "Én" : who;
-            String time = m.getTimestamp() == null ? "" : fmt.format(m.getTimestamp());
-            chatArea.append(String.format("[%s] %s: %s%n", time, label, m.getContent()));
-        }
-        // Auto-scroll to bottom so newest messages are visible
-        chatArea.setCaretPosition(chatArea.getDocument().getLength());
+        ChatUi.renderMessagesWithTime(chatArea, msgs, controller::getUsernameForId, me, "");
         lastCount = msgs.size();
     }
 
