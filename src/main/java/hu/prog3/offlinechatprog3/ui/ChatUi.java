@@ -80,31 +80,21 @@ public final class ChatUi {
         // Chat terület törlése
         chatArea.setText("");
         
-        // Prefix beállítása (ha nincs, akkor üres string)
-        String prefix = "";
-        if (prefixOrNull != null) {
-            prefix = prefixOrNull;
-        }
+        // Prefix beállítása (ha nincs, akkor üres string) - TERNARY operátor
+        final String prefix = prefixOrNull == null ? "" : prefixOrNull;
         
         // Végigmegyünk az összes üzeneten
         for (Message m : msgs) {
-            // Feladó ID-ból név készítése
-            UUID senderId = m.getSenderId();
-            String who = usernameResolver.apply(senderId);
-            
-            // Ha nincs név (null), akkor "?" legyen
-            if (who == null) {
-                who = "?";
-            }
+            // Feladó ID-ból név készítése, ha nincs (null), akkor "?" legyen
+            String who = usernameResolver.apply(m.getSenderId());
+            if (who == null) who = "?";
             
             // Üzenet hozzáfűzése: "prefix név: szöveg"
-            String line = prefix + who + ": " + m.getContent() + "\n";
-            chatArea.append(line);
+            chatArea.append(prefix + who + ": " + m.getContent() + "\n");
         }
         
         // Görgetés az aljára (hogy az új üzenetek látszódjanak)
-        int length = chatArea.getDocument().getLength();
-        chatArea.setCaretPosition(length);
+        chatArea.setCaretPosition(chatArea.getDocument().getLength());
     }
 
     /**
@@ -149,47 +139,29 @@ public final class ChatUi {
         chatArea.setText("");
         
         // Dátum formázó: "2024-11-11 15:30" formátum
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        fmt = fmt.withZone(ZoneId.systemDefault());
+        final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+                .withZone(ZoneId.systemDefault());
         
-        // Prefix beállítása
-        String prefix = "";
-        if (prefixOrNull != null) {
-            prefix = prefixOrNull;
-        }
+        // Prefix beállítása - TERNARY operátor
+        final String prefix = prefixOrNull == null ? "" : prefixOrNull;
         
         // Végigmegyünk az összes üzeneten
         for (Message m : msgs) {
-            // Feladó ID-ból név készítése
-            UUID senderId = m.getSenderId();
-            String who = usernameResolver.apply(senderId);
+            // Feladó ID-ból név készítése, ha nincs (null), akkor "?" legyen
+            String who = usernameResolver.apply(m.getSenderId());
+            if (who == null) who = "?";
             
-            // Ha nincs név, akkor "?" legyen
-            if (who == null) {
-                who = "?";
-            }
-            
-            // Ha én küldtem, akkor "Én" legyen, különben a feladó neve
-            String label;
-            if (who.equals(me)) {
-                label = "Én";
-            } else {
-                label = who;
-            }
+            // Ha én küldtem, akkor "Én" legyen, különben a feladó neve - TERNARY operátor
+            String label = who.equals(me) ? "Én" : who;
             
             // Időbélyeg formázása
-            String time = "";
-            if (m.getTimestamp() != null) {
-                time = fmt.format(m.getTimestamp());
-            }
+            String time = m.getTimestamp() == null ? "" : fmt.format(m.getTimestamp());
             
-            // Teljes sor összeállítása: "[időpont] prefix név: szöveg"
-            String line = "[" + time + "] " + prefix + label + ": " + m.getContent() + "\n";
-            chatArea.append(line);
+            // Teljes sor összeállítása String.format-tal: "[időpont] prefix név: szöveg"
+            chatArea.append(String.format("[%s] %s%s: %s\n", time, prefix, label, m.getContent()));
         }
         
         // Görgetés az aljára
-        int length = chatArea.getDocument().getLength();
-        chatArea.setCaretPosition(length);
+        chatArea.setCaretPosition(chatArea.getDocument().getLength());
     }
 }

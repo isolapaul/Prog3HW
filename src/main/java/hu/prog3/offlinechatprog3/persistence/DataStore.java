@@ -508,6 +508,12 @@ public class DataStore implements Serializable {
 
     // Messaging (private: key is sorted username pair joined by '#')
     private String privateKey(String a, String b) {
+        if (a == null) {
+            throw new IllegalArgumentException("First username (a) cannot be null");
+        }
+        if (b == null) {
+            throw new IllegalArgumentException("Second username (b) cannot be null");
+        }
         List<String> l = Arrays.asList(a, b);
         Collections.sort(l);
         return String.join("#", l);

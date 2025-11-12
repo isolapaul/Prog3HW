@@ -121,8 +121,9 @@ public abstract class BaseChatWindow extends JFrame {
         // Gombok és mezők eseménykezelése
         bindEvents();
         
-        // Első betöltés - meglévő üzenetek megjelenítése
-        reloadMessages();
+        // FONTOS: A reloadMessages()-t NEM hívjuk meg itt!
+        // Az alcsosztályok hívják meg a konstruktoruk végén,
+        // miután inicializálták a saját mezőiket (pl. `other` a PrivateChatWindow-ban)
         
         // Timer indítása - 1.5 másodpercenként ellenőrzi az új üzeneteket
         startLive();

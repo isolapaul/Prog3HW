@@ -68,6 +68,7 @@ public class PrivateChatWindow extends BaseChatWindow {
      * 1. Szülő osztály konstruktorát meghívja (super)
      * 2. Ablak címe: "Chat: Béla <--> Anna"
      * 3. Másik felhasználó nevének eltárolása
+     * 4. Üzenetek betöltése (reloadMessages)
      * 
      * PÉLDA:
      * PrivateChatWindow("controller", "Béla", "Anna")
@@ -78,10 +79,14 @@ public class PrivateChatWindow extends BaseChatWindow {
     public PrivateChatWindow(AppController controller, String me, String other) {
         // Szülő konstruktor meghívása (BaseChatWindow)
         // Paraméterek: controller, me, ablak címe
+        // FONTOS: A super() NEM hívja meg a reloadMessages()-t!
         super(controller, me, "Chat: " + me + " <--> " + other);
         
         // Másik felhasználó nevének eltárolása
         this.other = other;
+        
+        // Most már inicializálva van az `other` mező, most betölthetjük az üzeneteket
+        reloadMessages();
     }
 
     /**

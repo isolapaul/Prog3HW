@@ -87,10 +87,14 @@ public class GroupChatWindow extends BaseChatWindow {
     public GroupChatWindow(AppController controller, UUID groupId, String me, String title) {
         // Szülő konstruktor meghívása (BaseChatWindow)
         // Paraméterek: controller, me, ablak címe
+        // FONTOS: A super() NEM hívja meg a reloadMessages()-t!
         super(controller, me, "Csoport: " + title);
         
         // Csoport azonosító eltárolása
         this.groupId = groupId;
+        
+        // Most már inicializálva van a `groupId` mező, most betölthetjük az üzeneteket
+        reloadMessages();
     }
 
     /**

@@ -357,6 +357,11 @@ public class MainFrame extends JFrame {
     }
 
     private void openPrivateChat(String friend) {
+        // Null vagy üres string ellenőrzés
+        if (friend == null || friend.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nincs kiválasztva barát.", "Hiba", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         // If there is an open chat window, bring it to front
         PrivateChatWindow win = openChats.get(friend);
         if (win != null) {
@@ -365,20 +370,25 @@ public class MainFrame extends JFrame {
             return;
         }
         // Create and show a new chat window
-        PrivateChatWindow pcw = new PrivateChatWindow(controller, username, friend);
-        pcw.setVisible(true);
-        openChats.put(friend, pcw);
-        // remove from map when closed
-        pcw.addWindowListener(new java.awt.event.WindowAdapter() {
-            @Override
-            public void windowClosed(java.awt.event.WindowEvent e) {
-                openChats.remove(friend);
-            }
-            @Override
-            public void windowClosing(java.awt.event.WindowEvent e) {
-                openChats.remove(friend);
-            }
-        });
+        try {
+            PrivateChatWindow pcw = new PrivateChatWindow(controller, username, friend);
+            pcw.setVisible(true);
+            openChats.put(friend, pcw);
+            // remove from map when closed
+            pcw.addWindowListener(new java.awt.event.WindowAdapter() {
+                @Override
+                public void windowClosed(java.awt.event.WindowEvent e) {
+                    openChats.remove(friend);
+                }
+                @Override
+                public void windowClosing(java.awt.event.WindowEvent e) {
+                    openChats.remove(friend);
+                }
+            });
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Hiba a chat ablak megnyitásakor: " + ex.getMessage(), "Hiba", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
+        }
     }
 
     private void showIncomingRequests() {
@@ -462,17 +472,13 @@ public class MainFrame extends JFrame {
     // Load conversation with a friend and show messages in the chat area
     private void loadFriendConversation(String friend) {
         List<Message> msgs = controller.getPrivateMessages(username, friend);
-        // Lambda helyett method reference - de egyszerűbben:
-        // Ez egy függvény, ami UUID-ból username-et csinál
-        ChatUi.renderMessagesSimple(chatArea, msgs, id -> controller.getUsernameForId(id), "");
+        ChatUi.renderMessagesSimple(chatArea, msgs, controller::getUsernameForId, "");
     }
 
     // Load conversation with a group and show messages in the chat area
     private void loadGroupConversation(UUID groupId, String groupName) {
         List<Message> msgs = controller.getGroupMessages(groupId);
-        // Csoport előnézet prefix-szel: "[Csoport név] "
-        String prefix = "[" + groupName + "] ";
-        ChatUi.renderMessagesSimple(chatArea, msgs, id -> controller.getUsernameForId(id), prefix);
+        ChatUi.renderMessagesSimple(chatArea, msgs, controller::getUsernameForId, "[" + groupName + "] ");
     }
 
     // Refresh the friends list from controller
@@ -515,8 +521,17 @@ public class MainFrame extends JFrame {
     }
 
     private void openGroupChat(GroupItem gi) {
-        GroupChatWindow win = new GroupChatWindow(controller, gi.id, username, gi.name);
-        win.setVisible(true);
+        if (gi == null) {
+            JOptionPane.showMessageDialog(this, "Nincs kiválasztva csoport.", "Hiba", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        try {
+            GroupChatWindow win = new GroupChatWindow(controller, gi.id, username, gi.name);
+            win.setVisible(true);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Hiba a csoport chat ablak megnyitásakor: " + ex.getMessage(), "Hiba", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
+        }
     }
 
     private void updateSendButtonEnabled() {
