@@ -25,15 +25,9 @@ class MessageTest {
     }
 
     @Test
-    void testEmptyConstructor() {
-        Message message = new Message();
-        assertNotNull(message.getId());
-        assertNotNull(message.getTimestamp());
-    }
-
-    @Test
     void testSetSenderId() {
-        Message message = new Message();
+        UUID oldId = UUID.randomUUID();
+        Message message = new Message(oldId, UUID.randomUUID(), "test");
         UUID newSenderId = UUID.randomUUID();
         message.setSenderId(newSenderId);
         assertEquals(newSenderId, message.getSenderId());
@@ -41,7 +35,7 @@ class MessageTest {
 
     @Test
     void testSetConversationId() {
-        Message message = new Message();
+        Message message = new Message(UUID.randomUUID(), UUID.randomUUID(), "test");
         UUID newConvId = UUID.randomUUID();
         message.setConversationId(newConvId);
         assertEquals(newConvId, message.getConversationId());
@@ -64,8 +58,10 @@ class MessageTest {
 
     @Test
     void testEquals() {
-        Message msg1 = new Message();
-        Message msg2 = new Message();
+        UUID id1 = UUID.randomUUID();
+        UUID id2 = UUID.randomUUID();
+        Message msg1 = new Message(id1, UUID.randomUUID(), "test1");
+        Message msg2 = new Message(id2, UUID.randomUUID(), "test2");
         
         assertNotEquals(msg2, msg1);
         assertEquals(msg1, msg1);
@@ -75,8 +71,10 @@ class MessageTest {
 
     @Test
     void testHashCode() {
-        Message msg1 = new Message();
-        Message msg2 = new Message();
+        UUID id1 = UUID.randomUUID();
+        UUID id2 = UUID.randomUUID();
+        Message msg1 = new Message(id1, UUID.randomUUID(), "test1");
+        Message msg2 = new Message(id2, UUID.randomUUID(), "test2");
         
         assertNotEquals(msg1.hashCode(), msg2.hashCode());
         assertEquals(msg1.hashCode(), msg1.hashCode());

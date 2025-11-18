@@ -19,11 +19,11 @@ class DataStoreTest {
     }
 
     @Test
-    void registerAndAuthenticate() {
+    void registerUser() {
         assertTrue(store.registerUser("tesztElek", "jelszo123"));
         assertFalse(store.registerUser("tesztElek", "masikjelszo"));
-        assertTrue(store.authenticateUser("tesztElek", "jelszo123"));
-        assertFalse(store.authenticateUser("tesztElek", "hibas"));
+        assertNotNull(store.getUserByName("tesztElek"));
+        assertEquals("tesztElek", store.getUserByName("tesztElek").getUsername());
     }
 
     @Test
@@ -53,11 +53,15 @@ class DataStoreTest {
     void testGroupCreationAndMembership() {
         store.registerUser("DondiDuo", "duo");
         store.registerUser("isolapaul", "paul");
-        java.util.UUID id = store.createGroup("MyGroup", "DondiDuo");
-        assertNotNull(id);
-        assertTrue(store.addGroupMember(id, "isolapaul", "Résztvevő"));
-        java.util.Set<String> members = store.getGroupMembers(id);
-        assertTrue(members.contains("isolapaul"));
+        UUID groupId = store.createGroup("MyGroup", "DondiDuo");
+        assertNotNull(groupId);
+        
+        UUID isolapaulId = store.getUserByName("isolapaul").getId();
+        var group = store.getGroup(groupId);
+        assertNotNull(group);
+        group.addMember(isolapaulId, "Résztvevő");
+        
+        assertTrue(group.getMemberRoles().containsKey(isolapaulId));
     }
 
     @Test
@@ -75,7 +79,8 @@ class DataStoreTest {
     void privateMessaging() {
         store.registerUser("bob","a");
         store.registerUser("isolapaul","b");
-        store.sendPrivateMessage("bob","isolapaul","szia paul!");
+        UUID bobId = store.getUserByName("bob").getId();
+        store.sendPrivateMessage(bobId, "bob","isolapaul","szia paul!");
         List<Message> message = store.getPrivateMessages("bob","isolapaul");
         assertEquals(1, message.size());
         assertEquals("szia paul!", message.get(0).getContent());
@@ -87,8 +92,13 @@ class DataStoreTest {
         UUID gid = store.createGroup("csapat","tesztElek");
         assertNotNull(gid);
         store.registerUser("bob","pw2");
-        assertTrue(store.addGroupMember(gid,"bob","Résztvevő"));
-        store.sendGroupMessage(gid,"tesztElek","sziasztok");
+        
+        UUID bobId = store.getUserByName("bob").getId();
+        var group = store.getGroup(gid);
+        group.addMember(bobId, "Résztvevő");
+        
+        UUID tesztElekId = store.getUserByName("tesztElek").getId();
+        store.sendGroupMessage(tesztElekId, gid, "sziasztok");
         assertEquals(1, store.getGroupMessages(gid).size());
     }
 }

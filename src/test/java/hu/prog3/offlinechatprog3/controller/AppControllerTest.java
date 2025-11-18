@@ -33,8 +33,8 @@ class AppControllerTest {
     void friendRequestLifecycle_and_privateMessaging() {
         
         AppController c = new AppController();
-        assertTrue(c.registerUser("tesztElek", hash("p")));
-        assertTrue(c.registerUser("bob", hash("p")));
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("tesztElek", hash("p")));
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("bob", hash("p")));
 
         assertTrue(c.sendFriendRequest("tesztElek", "bob"));
         assertTrue(c.acceptFriendRequest("bob", "tesztElek"));
@@ -49,8 +49,8 @@ class AppControllerTest {
     void groupMessaging_permissions() {
         cleanupDataFile();
         AppController c = new AppController();
-        assertTrue(c.registerUser("isolapaul", "jelszo"));
-        assertTrue(c.registerUser("bob", "pass"));
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("isolapaul", "jelszo"));
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("bob", "pass"));
 
         UUID gid = c.createGroup("csoportom", "isolapaul");
         assertNotNull(gid);
@@ -70,7 +70,7 @@ class AppControllerTest {
     void testDeleteGroupMessage() {
         cleanupDataFile();
         AppController c = new AppController();
-        c.registerUser("tesztElek", "pass1");
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("tesztElek", "pass1"));
         
         UUID gid = c.createGroup("Teszt", "tesztElek");
         c.sendGroupMessage(gid, "tesztElek", "ez egy uzenet");
@@ -89,7 +89,7 @@ class AppControllerTest {
     void testDeleteGroup() {
         cleanupDataFile();
         AppController c = new AppController();
-        c.registerUser("isolapaul", "pw");
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("isolapaul", "pw"));
         
         UUID gid = c.createGroup("CsoportX", "isolapaul");
         assertNotNull(gid);
@@ -102,8 +102,8 @@ class AppControllerTest {
     void testGetGroupMembers() {
         cleanupDataFile();
         AppController c = new AppController();
-        c.registerUser("DondiDuo", "duo123");
-        c.registerUser("bob", "bob456");
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("DondiDuo", "duo123"));
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("bob", "bob456"));
         
         UUID gid = c.createGroup("MyCrew", "DondiDuo");
         c.addGroupMember(gid, "bob", "Résztvevő");
@@ -117,8 +117,8 @@ class AppControllerTest {
     void testRemoveGroupMember() {
         cleanupDataFile();
         AppController c = new AppController();
-        c.registerUser("isolapaul", "12345");
-        c.registerUser("tesztElek", "67890");
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("isolapaul", "12345"));
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("tesztElek", "67890"));
         
         UUID gid = c.createGroup("ProbaG", "isolapaul");
         c.addGroupMember(gid, "tesztElek", "Résztvevő");
@@ -131,8 +131,8 @@ class AppControllerTest {
     void testSetGroupMemberRole() {
         cleanupDataFile();
         AppController c = new AppController();
-        c.registerUser("bob", "bobpass");
-        c.registerUser("DondiDuo", "duopass");
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("bob", "bobpass"));
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("DondiDuo", "duopass"));
         
         UUID gid = c.createGroup("Squad", "bob");
         c.addGroupMember(gid, "DondiDuo", "Résztvevő");
@@ -145,8 +145,8 @@ class AppControllerTest {
     void testGetAllUsernames() {
         cleanupDataFile();
         AppController c = new AppController();
-        c.registerUser("tesztElek", "1234");
-        c.registerUser("isolapaul", "5678");
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("tesztElek", "1234"));
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("isolapaul", "5678"));
         
         Set<String> usernames = c.getAllUsernames();
         assertTrue(usernames.contains("tesztElek"));
@@ -157,7 +157,7 @@ class AppControllerTest {
     void testAuthenticationFailure() {
         cleanupDataFile();
         AppController c = new AppController();
-        c.registerUser("DondiDuo", "correctpw");
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("DondiDuo", "correctpw"));
         
         assertFalse(c.authenticateUser("DondiDuo", "wrongpw"));
     }
@@ -166,15 +166,29 @@ class AppControllerTest {
     void testRegisterDuplicateUser() {
         cleanupDataFile();
         AppController c = new AppController();
-        assertTrue(c.registerUser("bob", "pw1"));
-        assertFalse(c.registerUser("bob", "pw2"));
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("bob", "pw1"));
+        assertEquals(RegistrationResult.USERNAME_ALREADY_TAKEN, c.registerUser("bob", "pw2"));
+    }
+
+    @Test
+    void testRegisterUsernameTooShort() {
+        cleanupDataFile();
+        AppController c = new AppController();
+        assertEquals(RegistrationResult.USERNAME_TOO_SHORT, c.registerUser("ab", "pw"));
+    }
+
+    @Test
+    void testRegisterUsernameTooLong() {
+        cleanupDataFile();
+        AppController c = new AppController();
+        assertEquals(RegistrationResult.USERNAME_TOO_LONG, c.registerUser("verylongusernamemorethan20chars", "pw"));
     }
 
     @Test
     void testSendFriendRequestToNonExistent() {
         cleanupDataFile();
         AppController c = new AppController();
-        c.registerUser("tesztElek", "xyz");
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("tesztElek", "xyz"));
         
         assertFalse(c.sendFriendRequest("tesztElek", "nemletezik"));
     }
@@ -183,7 +197,7 @@ class AppControllerTest {
     void testAcceptNonExistentFriendRequest() {
         cleanupDataFile();
         AppController c = new AppController();
-        c.registerUser("isolapaul", "abc");
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("isolapaul", "abc"));
         
         assertFalse(c.acceptFriendRequest("isolapaul", "nincskerelem"));
     }
@@ -192,7 +206,7 @@ class AppControllerTest {
     void testGetGroupAvailableRoles() {
         cleanupDataFile();
         AppController c = new AppController();
-        c.registerUser("bob", "hello");
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("bob", "hello"));
         
         UUID gid = c.createGroup("Roles", "bob");
         Set<String> roles = c.getGroupAvailableRoles(gid);
@@ -206,8 +220,8 @@ class AppControllerTest {
     void testGetGroupMembersWithRoles() {
         cleanupDataFile();
         AppController c = new AppController();
-        c.registerUser("DondiDuo", "qwerty");
-        c.registerUser("tesztElek", "asdfgh");
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("DondiDuo", "qwerty"));
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("tesztElek", "asdfgh"));
         
         UUID gid = c.createGroup("Team", "DondiDuo");
         c.addGroupMember(gid, "tesztElek", "Résztvevő");
@@ -221,8 +235,8 @@ class AppControllerTest {
     void testSendPrivateMessageWithoutFriendship() {
         cleanupDataFile();
         AppController c = new AppController();
-        c.registerUser("isolapaul", "pw1");
-        c.registerUser("bob", "pw2");
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("isolapaul", "pw1"));
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("bob", "pw2"));
         
         assertFalse(c.sendPrivateMessage("isolapaul", "bob", "yo"));
     }
@@ -231,9 +245,9 @@ class AppControllerTest {
     void testMultipleFriendRequests() {
         cleanupDataFile();
         AppController c = new AppController();
-        c.registerUser("tesztElek", "aaa");
-        c.registerUser("bob", "bbb");
-        c.registerUser("DondiDuo", "ccc");
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("tesztElek", "aaa"));
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("bob", "bbb"));
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("DondiDuo", "ccc"));
         
         c.sendFriendRequest("tesztElek", "bob");
         c.sendFriendRequest("tesztElek", "DondiDuo");
@@ -246,7 +260,7 @@ class AppControllerTest {
     void testHasGroupPermission() {
         cleanupDataFile();
         AppController c = new AppController();
-        c.registerUser("isolapaul", "mypass");
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("isolapaul", "mypass"));
         
         UUID gid = c.createGroup("PermTest", "isolapaul");
         
@@ -258,8 +272,8 @@ class AppControllerTest {
     void testSendGroupMessageWithoutPermission() {
         cleanupDataFile();
         AppController c = new AppController();
-        c.registerUser("DondiDuo", "x1");
-        c.registerUser("tesztElek", "x2");
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("DondiDuo", "x1"));
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("tesztElek", "x2"));
         
         UUID gid = c.createGroup("NoSend", "DondiDuo");
         c.addGroupMember(gid, "tesztElek", "Olvasó");
@@ -271,8 +285,8 @@ class AppControllerTest {
     void testDeleteGroupMessageWithoutPermission() {
         cleanupDataFile();
         AppController c = new AppController();
-        c.registerUser("bob", "p1");
-        c.registerUser("isolapaul", "p2");
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("bob", "p1"));
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("isolapaul", "p2"));
         
         UUID gid = c.createGroup("DelTest", "bob");
         c.sendGroupMessage(gid, "bob", "msg");
@@ -288,8 +302,8 @@ class AppControllerTest {
     void testDeleteGroupWithoutPermission() {
         cleanupDataFile();
         AppController c = new AppController();
-        c.registerUser("tesztElek", "zxc");
-        c.registerUser("DondiDuo", "vbn");
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("tesztElek", "zxc"));
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("DondiDuo", "vbn"));
         
         UUID gid = c.createGroup("NoDel", "tesztElek");
         c.addGroupMember(gid, "DondiDuo", "Résztvevő");
@@ -310,7 +324,7 @@ class AppControllerTest {
     void testInvalidOperationsWithNullGroup() {
         cleanupDataFile();
         AppController c = new AppController();
-        c.registerUser("bob", "passw");
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("bob", "passw"));
         
         assertFalse(c.sendGroupMessage(null, "bob", "null group"));
         assertFalse(c.deleteGroup(null, "bob"));
@@ -320,8 +334,8 @@ class AppControllerTest {
     void testMultipleMessagesInPrivateChat() {
         cleanupDataFile();
         AppController c = new AppController();
-        c.registerUser("isolapaul", "1");
-        c.registerUser("bob", "2");
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("isolapaul", "1"));
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("bob", "2"));
         
         c.sendFriendRequest("isolapaul", "bob");
         c.acceptFriendRequest("bob", "isolapaul");
@@ -338,8 +352,8 @@ class AppControllerTest {
     void testAddGroupMemberMultipleRoles() {
         cleanupDataFile();
         AppController c = new AppController();
-        c.registerUser("DondiDuo", "dd");
-        c.registerUser("tesztElek", "te");
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("DondiDuo", "dd"));
+        assertEquals(RegistrationResult.SUCCESS, c.registerUser("tesztElek", "te"));
         
         UUID gid = c.createGroup("MultiRole", "DondiDuo");
         c.addCustomRole(gid, "Mod");

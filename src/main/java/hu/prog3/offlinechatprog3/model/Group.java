@@ -42,10 +42,6 @@ public class Group implements Serializable {
     private static final String ROLE_ADMIN = "Adminisztrátor";
     private static final String ROLE_PARTICIPANT = "Résztvevő";
     private static final String ROLE_READER = "Olvasó";
-    // Üres konstruktor(teszthez)
-    public Group() {
-        this.id = UUID.randomUUID();
-    }
 
     public Group(String name) {
         this.id = UUID.randomUUID(); // Egyedi ID

@@ -125,10 +125,4 @@ class GroupTest {
         assertFalse(group.hasPermission(nonMember, Permissions.GROUP_SEND_MESSAGE));
         assertFalse(group.isAdmin(nonMember));
     }
-
-    @Test
-    void testEmptyConstructor() {
-        Group emptyGroup = new Group();
-        assertNotNull(emptyGroup.getId());
-    }
 }

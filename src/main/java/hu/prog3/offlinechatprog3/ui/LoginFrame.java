@@ -107,23 +107,41 @@ public class LoginFrame extends JFrame {
             
             //regisztráció végrehajtása a controller segítségével
             String hashedPw = PasswordUtil.hashPassword(pw);
-            boolean ok = controller.registerUser(user, hashedPw);
-            if (ok) {
-                //sikeres regisztráció
-                JOptionPane.showMessageDialog(
-                    LoginFrame.this,
-                    "Sikeres regisztráció. Jelentkezz be.",
-                    "Siker",
-                    JOptionPane.INFORMATION_MESSAGE  // Info ikon (i)
-                );
-            } else {
-                //sikertelen
-                JOptionPane.showMessageDialog(
-                    LoginFrame.this,
-                    "A felhasználónév már foglalt.",
-                    "Hiba",
-                    JOptionPane.ERROR_MESSAGE  // Hiba ikon
-                );
+            hu.prog3.offlinechatprog3.controller.RegistrationResult result = controller.registerUser(user, hashedPw);
+            
+            switch (result) {
+                case SUCCESS:
+                    JOptionPane.showMessageDialog(
+                        LoginFrame.this,
+                        "Sikeres regisztráció. Jelentkezz be.",
+                        "Siker",
+                        JOptionPane.INFORMATION_MESSAGE
+                    );
+                    break;
+                case USERNAME_TOO_SHORT:
+                    JOptionPane.showMessageDialog(
+                        LoginFrame.this,
+                        "A felhasználónév túl rövid (legalább 3 karakter).",
+                        "Hiba",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                    break;
+                case USERNAME_TOO_LONG:
+                    JOptionPane.showMessageDialog(
+                        LoginFrame.this,
+                        "A felhasználónév túl hosszú (maximum 20 karakter).",
+                        "Hiba",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                    break;
+                case USERNAME_ALREADY_TAKEN:
+                    JOptionPane.showMessageDialog(
+                        LoginFrame.this,
+                        "A felhasználónév már foglalt.",
+                        "Hiba",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                    break;
             }
         });
         //bejelentkezés gomb

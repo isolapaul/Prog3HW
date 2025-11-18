@@ -48,16 +48,7 @@ public class Message implements Serializable {
     private Instant timestamp;
 
     /**
-     * ÜRES KONSTRUKTOR
-     * Létrehoz egy üres üzenetet, automatikusan beállítva az ID-t és időpontot.
-     */
-    public Message() {
-        this.id = UUID.randomUUID(); // Egyedi ID generálás
-        this.timestamp = Instant.now(); // Jelenlegi időpont rögzítése
-    }
-
-    /**
-     * TELJES KONSTRUKTOR
+     * KONSTRUKTOR
      * Létrehoz egy új üzenetet minden szükséges adattal.
      * 
      * @param senderId Ki küldi az üzenetet (felhasználó ID)
