@@ -151,7 +151,7 @@ public final class ChatUi {
             String label = who.equals(me) ? "Én" : who;
             String time = m.getTimestamp() == null ? "" : format.format(m.getTimestamp());
             
-            chatArea.append("[" + time + "] " + prefix + label + ": " + m.getContent() + "\n");
+            chatArea.append(String.format("[%s] %s%s: %s\n", time, prefix, label, m.getContent()));
         }
         
         // Görgetés az aljára
