@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>hu.prog3</groupId>
     <artifactId>offline-chat-prog3</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
     <name>offline-chat-prog3</name>
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
