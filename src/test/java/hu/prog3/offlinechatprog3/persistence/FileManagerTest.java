@@ -11,7 +11,7 @@ class FileManagerTest {
     @Test
     void saveAndLoadRoundtrip() {
         DataStore store = new DataStore();
-        store.registerUser("x","p");
+        store.registerUser("bob","mypass");
         File tmp = new File(System.getProperty("java.io.tmpdir"), "ds-test.dat");
         try {
             assertTrue(FileManager.save(store, tmp));
@@ -28,14 +28,13 @@ class FileManagerTest {
         File tmp = File.createTempFile("ds-test-2", ".dat");
         tmp.deleteOnExit();
         DataStore ds = new DataStore();
-        ds.registerUser("a", "1");
-        ds.registerUser("b", "2");
-        assertTrue(ds.sendFriendRequest("a", "b"));
-        // save
+        ds.registerUser("isolapaul", "pass1");
+        ds.registerUser("DondiDuo", "pass2");
+        assertTrue(ds.sendFriendRequest("isolapaul", "DondiDuo"));
         FileManager.save(ds, tmp);
         DataStore loaded = FileManager.load(tmp);
         assertNotNull(loaded);
-        assertFalse(loaded.getOutgoingFriendRequests("a").isEmpty());
-        assertTrue(loaded.getIncomingFriendRequests("b").contains("a"));
+        assertFalse(loaded.getOutgoingFriendRequests("isolapaul").isEmpty());
+        assertTrue(loaded.getIncomingFriendRequests("DondiDuo").contains("isolapaul"));
     }
 }

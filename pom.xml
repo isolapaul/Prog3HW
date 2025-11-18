@@ -14,7 +14,7 @@
         <sonar.organization>isolapaul</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.projectKey>isolapaul_prog3</sonar.projectKey>
-        
+        <sonar.coverage.exclusions>**/ui/**</sonar.coverage.exclusions>
     </properties>
     <dependencies>
         <!-- Using Java built-in serialization per specification; no JSON library required -->

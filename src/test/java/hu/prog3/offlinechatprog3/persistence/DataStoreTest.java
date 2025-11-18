@@ -18,89 +18,77 @@ class DataStoreTest {
         store.clearAll();
     }
 
-    //regisztráció és hitelesítés tesztelése
     @Test
     void registerAndAuthenticate() {
-        assertTrue(store.registerUser("TesztElek", "tesztElek"));
-        assertFalse(store.registerUser("TesztElek", "password")); // mivel duplán lenne
-        assertTrue(store.authenticateUser("TesztElek", "tesztElek")); //sikeres bejelentkezés
-        assertFalse(store.authenticateUser("TesztElek", "roszzJelszo")); // sikertelen bejelentkezés
+        assertTrue(store.registerUser("tesztElek", "jelszo123"));
+        assertFalse(store.registerUser("tesztElek", "masikjelszo"));
+        assertTrue(store.authenticateUser("tesztElek", "jelszo123"));
+        assertFalse(store.authenticateUser("tesztElek", "hibas"));
     }
 
-    //barát műveletek tesztelése
     @Test
     void friendOperations() {
-        store.registerUser("a", "1"); //két felhasználó regisztrálása
-        store.registerUser("b", "2");
-        assertTrue(store.addFriend("a","b")); //a bejelöli b-t barátnak
-        assertTrue(store.areFriends("a","b")); //ekkor már barátok
-        assertTrue(store.removeFriend("a","b")); //a eltávolítja b-t a barátok közül
-        assertFalse(store.areFriends("a","b")); //már nem barátok
+        store.registerUser("bob", "pw1");
+        store.registerUser("isolapaul", "pw2");
+        assertTrue(store.addFriend("bob","isolapaul"));
+        assertTrue(store.areFriends("bob","isolapaul"));
+        assertTrue(store.removeFriend("bob","isolapaul"));
+        assertFalse(store.areFriends("bob","isolapaul"));
     }
 
-    //barátkérés tesztelése
     @Test
     void testFriendRequest() {
-        
-        store.registerUser("TesztElek", "tesztElek");
-        store.registerUser("bob", "BOB");
-        // TesztElek bob-nak küld barátkérést
-        assertTrue(store.sendFriendRequest("TesztElek", "bob"));
-        // bobnak egy bejövő kérése van
+        store.registerUser("tesztElek", "pass");
+        store.registerUser("bob", "pass2");
+        assertTrue(store.sendFriendRequest("tesztElek", "bob"));
         java.util.Set<String> incoming = store.getIncomingFriendRequests("bob");
         assertEquals(1, incoming.size());
-        assertTrue(incoming.contains("TesztElek")); //ellenerőzzük hogy a kérelem tényleg TesztElektől jött
-        // kérés elfogadása
-        assertTrue(store.acceptFriendRequest("bob", "TesztElek"));
-        // most már barátok
-        assertTrue(store.areFriends("TesztElek", "bob"));
-        assertTrue(store.getIncomingFriendRequests("bob").isEmpty()); // nem maradt több kérelem
+        assertTrue(incoming.contains("tesztElek"));
+        assertTrue(store.acceptFriendRequest("bob", "tesztElek"));
+        assertTrue(store.areFriends("tesztElek", "bob"));
+        assertTrue(store.getIncomingFriendRequests("bob").isEmpty());
     }
 
-
-    // Csoport létrehozás és tagság tesztelése
     @Test
     void testGroupCreationAndMembership() {
-        store.registerUser("owner", "owner"); //két felhasználó regisztrálása
-        store.registerUser("member", "member");
-        java.util.UUID id = store.createGroup("Group1", "owner"); //csoport létrehozása
+        store.registerUser("DondiDuo", "duo");
+        store.registerUser("isolapaul", "paul");
+        java.util.UUID id = store.createGroup("MyGroup", "DondiDuo");
         assertNotNull(id);
-        assertTrue(store.addGroupMember(id, "member", "Résztvevő")); //tag hozzáadása
-        java.util.Set<String> members = store.getGroupMembers(id); //csoport tagjai
-        assertTrue(members.contains("member"));
+        assertTrue(store.addGroupMember(id, "isolapaul", "Résztvevő"));
+        java.util.Set<String> members = store.getGroupMembers(id);
+        assertTrue(members.contains("isolapaul"));
     }
 
-    // barátkérés visszavonásának tesztelése
     @Test
     void testCancelOutgoingRequest() {
-        store.registerUser("a", "p"); // két felhasználó regisztrálása
-        store.registerUser("b", "p"); 
-        assertTrue(store.sendFriendRequest("a", "b")); // a barátkérelmet küldd b-nek
-        assertFalse(store.getOutgoingFriendRequests("a").isEmpty()); // a-nak itt már lesz egy kimenő kérése
-        assertTrue(store.cancelOutgoingFriendRequest("a", "b")); //visszavonjuk a barátkérelmet
-        assertTrue(store.getOutgoingFriendRequests("a").isEmpty()); //a-nak és b-nek sincs már több kérése
-        assertTrue(store.getIncomingFriendRequests("b").isEmpty());
+        store.registerUser("tesztElek", "x");
+        store.registerUser("DondiDuo", "y");
+        assertTrue(store.sendFriendRequest("tesztElek", "DondiDuo"));
+        assertFalse(store.getOutgoingFriendRequests("tesztElek").isEmpty());
+        assertTrue(store.cancelOutgoingFriendRequest("tesztElek", "DondiDuo"));
+        assertTrue(store.getOutgoingFriendRequests("tesztElek").isEmpty());
+        assertTrue(store.getIncomingFriendRequests("DondiDuo").isEmpty());
     }
 
-    // privát üzenetküldésnek a tesztelése
     @Test
     void privateMessaging() {
-        store.registerUser("a","p");
-        store.registerUser("b","p");
-        store.sendPrivateMessage("a","b","Szép napot kollega!");
-        List<Message> message = store.getPrivateMessages("a","b");
+        store.registerUser("bob","a");
+        store.registerUser("isolapaul","b");
+        store.sendPrivateMessage("bob","isolapaul","szia paul!");
+        List<Message> message = store.getPrivateMessages("bob","isolapaul");
         assertEquals(1, message.size());
-        assertEquals("Szép napot kollega!", message.get(0).getContent());
+        assertEquals("szia paul!", message.get(0).getContent());
     }
 
     @Test
     void groupAndMessages() {
-        store.registerUser("owner","x");
-        UUID gid = store.createGroup("g1","owner");
+        store.registerUser("tesztElek","pw");
+        UUID gid = store.createGroup("csapat","tesztElek");
         assertNotNull(gid);
-        store.registerUser("m","p");
-        assertTrue(store.addGroupMember(gid,"m","Résztvevő"));
-        store.sendGroupMessage(gid,"owner","hi group");
+        store.registerUser("bob","pw2");
+        assertTrue(store.addGroupMember(gid,"bob","Résztvevő"));
+        store.sendGroupMessage(gid,"tesztElek","sziasztok");
         assertEquals(1, store.getGroupMessages(gid).size());
     }
 }

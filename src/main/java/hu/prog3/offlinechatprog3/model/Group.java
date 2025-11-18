@@ -56,7 +56,7 @@ public class Group implements Serializable {
         roles.add(ROLE_PARTICIPANT);  // Résztvevő
         roles.add(ROLE_READER);       // Olvasó
         
-        // ALAPÉRTELMEZETT JOGOSULTSÁGOK BEÁLLÍTÁSA
+        // Alapértelmezett jogosultságok beállítása
         // Admin: minden jogosultság ("ALL" = mindent csinálhat)
         rolePermissions.put(ROLE_ADMIN, new HashSet<>(java.util.Arrays.asList(Permissions.ALL)));
         
