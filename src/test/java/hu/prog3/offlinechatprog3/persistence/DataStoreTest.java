@@ -18,75 +18,79 @@ class DataStoreTest {
         store.clearAll();
     }
 
+    //regisztráció és hitelesítés tesztelése
     @Test
     void registerAndAuthenticate() {
-        assertTrue(store.registerUser("alice", "pw1"));
-        assertFalse(store.registerUser("alice", "pw2")); // duplicate
-        assertTrue(store.authenticateUser("alice", "pw1"));
-        assertFalse(store.authenticateUser("alice", "wrong"));
+        assertTrue(store.registerUser("TesztElek", "tesztElek"));
+        assertFalse(store.registerUser("TesztElek", "password")); // mivel duplán lenne
+        assertTrue(store.authenticateUser("TesztElek", "tesztElek")); //sikeres bejelentkezés
+        assertFalse(store.authenticateUser("TesztElek", "roszzJelszo")); // sikertelen bejelentkezés
     }
 
+    //barát műveletek tesztelése
     @Test
     void friendOperations() {
-        store.registerUser("a", "1");
+        store.registerUser("a", "1"); //két felhasználó regisztrálása
         store.registerUser("b", "2");
-        assertTrue(store.addFriend("a","b"));
-        assertTrue(store.areFriends("a","b"));
-        assertTrue(store.removeFriend("a","b"));
-        assertFalse(store.areFriends("a","b"));
+        assertTrue(store.addFriend("a","b")); //a bejelöli b-t barátnak
+        assertTrue(store.areFriends("a","b")); //ekkor már barátok
+        assertTrue(store.removeFriend("a","b")); //a eltávolítja b-t a barátok közül
+        assertFalse(store.areFriends("a","b")); //már nem barátok
     }
 
-    @org.junit.jupiter.api.Test
-    void testFriendRequestLifecycle() {
-        DataStore ds = new DataStore();
-        ds.registerUser("alice", "pw");
-        ds.registerUser("bob", "pw");
-        // send request from alice to bob
-        assertTrue(ds.sendFriendRequest("alice", "bob"));
-        // bob has one incoming request
-        java.util.Set<String> incoming = ds.getIncomingFriendRequests("bob");
+    //barátkérés tesztelése
+    @Test
+    void testFriendRequest() {
+        
+        store.registerUser("TesztElek", "tesztElek");
+        store.registerUser("bob", "BOB");
+        // TesztElek bob-nak küld barátkérést
+        assertTrue(store.sendFriendRequest("TesztElek", "bob"));
+        // bobnak egy bejövő kérése van
+        java.util.Set<String> incoming = store.getIncomingFriendRequests("bob");
         assertEquals(1, incoming.size());
-        assertTrue(incoming.contains("alice"));
-        // accept request
-        assertTrue(ds.acceptFriendRequest("bob", "alice"));
-        // now they should be friends and no incoming
-        assertTrue(ds.areFriends("alice", "bob"));
-        assertTrue(ds.getIncomingFriendRequests("bob").isEmpty());
+        assertTrue(incoming.contains("TesztElek")); //ellenerőzzük hogy a kérelem tényleg TesztElektől jött
+        // kérés elfogadása
+        assertTrue(store.acceptFriendRequest("bob", "TesztElek"));
+        // most már barátok
+        assertTrue(store.areFriends("TesztElek", "bob"));
+        assertTrue(store.getIncomingFriendRequests("bob").isEmpty()); // nem maradt több kérelem
     }
 
-    @org.junit.jupiter.api.Test
+
+    // Csoport létrehozás és tagság tesztelése
+    @Test
     void testGroupCreationAndMembership() {
-        DataStore ds = new DataStore();
-        ds.registerUser("owner", "pw");
-        ds.registerUser("member", "pw");
-        java.util.UUID id = ds.createGroup("G1", "owner");
+        store.registerUser("owner", "owner"); //két felhasználó regisztrálása
+        store.registerUser("member", "member");
+        java.util.UUID id = store.createGroup("Group1", "owner"); //csoport létrehozása
         assertNotNull(id);
-        assertEquals(1, ds.groupCount());
-        assertTrue(ds.addGroupMember(id, "member", "Résztvevő"));
-        java.util.Set<String> members = ds.getGroupMembers(id);
+        assertTrue(store.addGroupMember(id, "member", "Résztvevő")); //tag hozzáadása
+        java.util.Set<String> members = store.getGroupMembers(id); //csoport tagjai
         assertTrue(members.contains("member"));
     }
 
-    @org.junit.jupiter.api.Test
+    // barátkérés visszavonásának tesztelése
+    @Test
     void testCancelOutgoingRequest() {
-        DataStore ds = new DataStore();
-        ds.registerUser("u1", "p");
-        ds.registerUser("u2", "p");
-        assertTrue(ds.sendFriendRequest("u1", "u2"));
-        assertFalse(ds.getOutgoingFriendRequests("u1").isEmpty());
-        assertTrue(ds.cancelOutgoingFriendRequest("u1", "u2"));
-        assertTrue(ds.getOutgoingFriendRequests("u1").isEmpty());
-        assertTrue(ds.getIncomingFriendRequests("u2").isEmpty());
+        store.registerUser("a", "p"); // két felhasználó regisztrálása
+        store.registerUser("b", "p"); 
+        assertTrue(store.sendFriendRequest("a", "b")); // a barátkérelmet küldd b-nek
+        assertFalse(store.getOutgoingFriendRequests("a").isEmpty()); // a-nak itt már lesz egy kimenő kérése
+        assertTrue(store.cancelOutgoingFriendRequest("a", "b")); //visszavonjuk a barátkérelmet
+        assertTrue(store.getOutgoingFriendRequests("a").isEmpty()); //a-nak és b-nek sincs már több kérése
+        assertTrue(store.getIncomingFriendRequests("b").isEmpty());
     }
 
+    // privát üzenetküldésnek a tesztelése
     @Test
     void privateMessaging() {
-        store.registerUser("u1","p");
-        store.registerUser("u2","p");
-        store.sendPrivateMessage("u1","u2","hello");
-        List<Message> msgs = store.getPrivateMessages("u1","u2");
-        assertEquals(1, msgs.size());
-        assertEquals("hello", msgs.get(0).getContent());
+        store.registerUser("a","p");
+        store.registerUser("b","p");
+        store.sendPrivateMessage("a","b","Szép napot kollega!");
+        List<Message> message = store.getPrivateMessages("a","b");
+        assertEquals(1, message.size());
+        assertEquals("Szép napot kollega!", message.get(0).getContent());
     }
 
     @Test

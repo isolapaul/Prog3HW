@@ -25,83 +25,33 @@ import java.util.*;
  */
 public class Group implements Serializable {
 
-    // Fájl mentéshez szükséges verzió azonosító
+    // Fájl mentéshez szükséges verzió azonosító, mindenhol ugyanez
     private static final long serialVersionUID = 1L;
-
-    // MEZŐK (a csoport adatai):
-    
-    /** Egyedi azonosító - minden csoportnak külön ID-ja van */
+    // Egyedi azonosító
     private UUID id;
-    
-    /** Csoport neve - pl. "Prog3 diákok csoportja" */
+    // Csoport neve
     private String name;
-    
-    /**
-     * TAGOK ÉS SZEREPEIK
-     * Map = olyan mint egy szótár, kulcs-érték párok
-     * Kulcs: Felhasználó ID (UUID)
-     * Érték: Szerep neve (String, pl. "Adminisztrátor")
-     * 
-     * PÉLDÁUL:
-     * {
-     *   userID_123 -> "Adminisztrátor",
-     *   userID_456 -> "Résztvevő",
-     *   userID_789 -> "Olvasó"
-     * }
-     */
+    //UUID-felhasználó, String a szerepe neve
     private Map<UUID, String> memberRoles = new HashMap<>();
-    
-    /**
-     * ELÉRHETŐ SZEREPEK A CSOPORTBAN
-     * Set = halmaz, minden elem csak egyszer szerepelhet
-     * 
-     * PÉLDÁUL: {"Adminisztrátor", "Résztvevő", "Olvasó", "Moderátor"}
-     */
+    // Elérhető szerepek,minden csak egyszer szerepelhet
     private Set<String> roles = new HashSet<>();
-    
-    /**
-     * SZEREPEKHEZ TARTOZÓ JOGOSULTSÁGOK
-     * Map a Map-ben! Kicsit bonyolult, de logikus:
-     * Kulcs: Szerep neve (String, pl. "Résztvevő")
-     * Érték: Jogosultságok halmaza (Set<String>, pl. {"GROUP_SEND_MESSAGE"})
-     * 
-     * PÉLDÁUL:
-     * {
-     *   "Adminisztrátor" -> {"ALL"},  // Minden jogosultság
-     *   "Résztvevő" -> {"GROUP_SEND_MESSAGE"},  // Csak üzenet küldés
-     *   "Olvasó" -> {}  // Üres halmaz = nincs joga
-     * }
-     */
+    // Szerepekhez tartozó jogosultságok
     private Map<String, Set<String>> rolePermissions = new HashMap<>();
     
-    // ALAPÉRTELMEZETT SZEREPEK - ezek mindig léteznek minden csoportban
+    // Alapértelmezett szerepek
     private static final String ROLE_ADMIN = "Adminisztrátor";
     private static final String ROLE_PARTICIPANT = "Résztvevő";
     private static final String ROLE_READER = "Olvasó";
-
-    /**
-     * ÜRES KONSTRUKTOR
-     * Létrehoz egy üres csoportot csak ID-val.
-     */
+    // Üres konstruktor(teszthez)
     public Group() {
-        this.id = UUID.randomUUID(); // Egyedi ID generálás
+        this.id = UUID.randomUUID();
     }
 
-    /**
-     * TELJES KONSTRUKTOR
-     * Létrehoz egy új csoportot névvel és beállítja az alapértelmezett szerepeket.
-     * 
-     * FONTOS! Amikor új csoportot hozunk létre, automatikusan beállítjuk:
-     * - 3 alapértelmezett szerepet (Admin, Résztvevő, Olvasó)
-     * - Minden szerephez az alapértelmezett jogosultságokat
-     * 
-     * @param name A csoport neve
-     */
     public Group(String name) {
-        this.id = UUID.randomUUID(); // Egyedi ID generálás
+        this.id = UUID.randomUUID(); // Egyedi ID
         this.name = name;
         
-        // ALAPÉRTELMEZETT SZEREPEK HOZZÁADÁSA
+        // Alapértelmezett szerepek hozzáadása
         roles.add(ROLE_ADMIN);        // Adminisztrátor
         roles.add(ROLE_PARTICIPANT);  // Résztvevő
         roles.add(ROLE_READER);       // Olvasó

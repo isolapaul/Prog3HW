@@ -1,76 +1,76 @@
 package hu.prog3.offlinechatprog3.model;
 
 /**
- * JOGOSULTSÁG KONSTANSOK OSZTÁLYA
+ * Csoport jogosultságok központi osztálya.
+ * Minden jogosultság egy helyen van definiálva, átlátható és könnyen karbantartható.
  * 
- * MIÉRT VAN RÁ SZÜKSÉG?
- * Ahelyett, hogy mindenhol kézzel írnánk be a jogosultság neveket (pl. "GROUP_SEND_MESSAGE"),
- * itt egy helyen definiáljuk őket. Ez azért jó, mert:
- * - Ha elírunk valamit, fordítási hibát kapunk (nem futásidejűt)
- * - Egy helyen lehet módosítani, ha változik a jogosultság neve
- * - Átláthatóbb a kód
- * 
- * HOGYAN HASZNÁLJUK?
- * Permissions.GROUP_SEND_MESSAGE helyett "GROUP_SEND_MESSAGE" írása
- * 
- * MIÉRT FINAL ÉS PRIVATE KONSTRUKTOR?
- * - final = nem lehet leszármaztatni (nem kell)
- * - private konstruktor = nem lehet példányosítani (csak a konstansokat használjuk)
- * Ez egy úgynevezett "utility class" - csak konstansokat tárol.
+ * Ez az osztály tartalmazza:
+ * 1. A jogosultság konstansokat (String-ként, szerializációs kompatibilitás miatt)
+ * 2. Emberi olvasható leírásokat minden jogosultsághoz
+ * 3. Helper metódust a jogosultságok ellenőrzéséhez
  */
 public final class Permissions {
-    
-    /**
-     * PRIVATE KONSTRUKTOR
-     * Megakadályozza, hogy valaki new Permissions()-t írjon.
-     * Nem kell példány, csak a konstansok kellnek.
-     */
-    private Permissions() {}
 
-    /**
-     * MINDEN JOGOSULTSÁG
-     * Ha valakinek "ALL" joga van, akkor MINDEN műveletre joga van.
-     * Általában az Admin szerepnek van ilyen joga.
+    private Permissions() {} // Utility class, ne lehessen példányosítani
+    
+    // ========== JOGOSULTSÁG KONSTANSOK ==========
+    
+    /** 
+     * Teljes jogosultság - minden műveletre jogot ad.
+     * Általában Admin szerephez tartozik.
      */
     public static final String ALL = "ALL";
-
-    /**
-     * ÜZENET KÜLDÉSI JOG
-     * Lehetővé teszi, hogy üzenetet küldjön a csoportba.
+    
+    /** 
+     * Üzenet küldési jog a csoportban.
      * Nélküle csak olvasni lehet az üzeneteket.
      */
     public static final String GROUP_SEND_MESSAGE = "GROUP_SEND_MESSAGE";
     
-    /**
-     * TAG HOZZÁADÁSI JOG
-     * Lehetővé teszi új tagok meghívását a csoportba.
+    /** 
+     * Tag hozzáadási jog - új tagok meghívása a csoportba.
      */
     public static final String GROUP_ADD_MEMBER = "GROUP_ADD_MEMBER";
     
-    /**
-     * TAG ELTÁVOLÍTÁSI JOG
-     * Lehetővé teszi tagok kirúgását a csoportból.
+    /** 
+     * Tag eltávolítási jog - tagok kirúgása a csoportból.
      */
     public static final String GROUP_REMOVE_MEMBER = "GROUP_REMOVE_MEMBER";
     
-    /**
-     * ÜZENET TÖRLÉSI JOG
-     * Lehetővé teszi mások üzeneteinek törlését.
-     * Fontos moderátori jogosultság.
+    /** 
+     * Üzenet törlési jog - mások üzeneteinek törlése.
+     * Moderátori jogosultság.
      */
     public static final String GROUP_DELETE_MESSAGES = "GROUP_DELETE_MESSAGES";
     
-    /**
-     * CSOPORT TÖRLÉSI JOG
-     * Lehetővé teszi az egész csoport törlését.
-     * Nagyon erős jogosultság, általában csak az Admin-nak van.
+    /** 
+     * Csoport törlési jog - az egész csoport törlése.
+     * Nagyon erős jogosultság, általában csak Admin-nak van.
      */
     public static final String GROUP_DELETE_GROUP = "GROUP_DELETE_GROUP";
     
-    /**
-     * OLVASÁSI JOG
-     * Jelenleg nem használt - mindenki olvashat alapértelmezetten.
-     * Jövőbeli bővítéshez lehet hasznos (privát csoportok).
+    /** 
+     * Olvasási jog - jelenleg minden szerepnek alapértelmezett.
+     * Jövőbeli privát csoportokhoz hasznos lehet.
      */
     public static final String GROUP_READ = "GROUP_READ";
+    
+    // ========== LEÍRÁSOK ==========
+    
+    /**
+     * Emberi olvasható leírást ad egy jogosultságról.
+     * Hasznos UI-ban való megjelenítéshez.
+     */
+    public static String getDescription(String permission) {
+        return switch (permission) {
+            case ALL -> "Minden jogosultság (teljes hozzáférés)";
+            case GROUP_SEND_MESSAGE -> "Üzenet küldése a csoportban";
+            case GROUP_ADD_MEMBER -> "Új tag hozzáadása a csoporthoz";
+            case GROUP_REMOVE_MEMBER -> "Tag eltávolítása a csoportból";
+            case GROUP_DELETE_MESSAGES -> "Üzenetek törlése a csoportban";
+            case GROUP_DELETE_GROUP -> "Csoport törlése";
+            case GROUP_READ -> "Üzenetek olvasása";
+            default -> "Ismeretlen jogosultság";
+        };
+    }
 }

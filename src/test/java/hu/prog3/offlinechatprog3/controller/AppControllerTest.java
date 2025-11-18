@@ -16,10 +16,7 @@ class AppControllerTest {
 
     private void cleanupDataFile() {
         File f = new File("data/offline-chat.dat");
-        if (f.exists()) {
-            //noinspection ResultOfMethodCallIgnored
-            f.delete();
-        }
+        if (f.exists()) f.delete();
     }
 
     @AfterEach
