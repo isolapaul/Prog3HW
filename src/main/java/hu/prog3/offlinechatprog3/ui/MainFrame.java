@@ -233,8 +233,8 @@ public class MainFrame extends JFrame {
     private void sendToGroup(String text) {
         GroupItem gi = requireSelectedGroup();
         if (gi == null) return;
-                if (!controller.hasGroupPermission(gi.id, username, hu.prog3.offlinechatprog3.model.Permissions.GROUP_SEND_MESSAGE)) {
-                    JOptionPane.showMessageDialog(MainFrame.this, UiMessages.NO_PERM_SEND_GROUP, UiMessages.WARN_TITLE, JOptionPane.WARNING_MESSAGE);
+        if (!controller.hasGroupPermission(gi.id, username, hu.prog3.offlinechatprog3.model.Permissions.GROUP_SEND_MESSAGE)) {
+            JOptionPane.showMessageDialog(MainFrame.this, UiMessages.NO_PERM_SEND_GROUP, UiMessages.WARN_TITLE, JOptionPane.WARNING_MESSAGE);
             return;
         }
         boolean ok = controller.sendGroupMessage(gi.id, username, text);

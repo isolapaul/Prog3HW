@@ -6,6 +6,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.HashSet;
+
 
 /**
  * Simple group manager dialog: list groups, create group, view/add/remove members, add roles.
@@ -76,7 +81,7 @@ public class GroupManager extends JDialog {
             JOptionPane.showMessageDialog(this, UiMessages.NO_PERM_DELETE_MSG, UiMessages.WARN_TITLE, JOptionPane.WARNING_MESSAGE);
             return;
         }
-        java.util.List<hu.prog3.offlinechatprog3.model.Message> msgs = controller.getGroupMessages(sel.id);
+        List<hu.prog3.offlinechatprog3.model.Message> msgs = controller.getGroupMessages(sel.id);
         DefaultListModel<MessageItem> model = new DefaultListModel<>();
         for (hu.prog3.offlinechatprog3.model.Message m : msgs) {
             model.addElement(new MessageItem(m, controller.getUsernameForId(m.getSenderId())));
@@ -112,7 +117,7 @@ public class GroupManager extends JDialog {
     }
 
     private static class MessageItem {
-        final java.util.UUID id;
+        final UUID id;
         final String display;
         MessageItem(hu.prog3.offlinechatprog3.model.Message m, String sender) {
             this.id = m.getId();
@@ -137,11 +142,13 @@ public class GroupManager extends JDialog {
         GroupItem sel = requireSelectedGroup();
         if (sel == null) return;
         UUID id = sel.id;
-        java.util.Set<String> members = controller.getGroupMembers(id);
+        Set<String> members = controller.getGroupMembers(id);
 
         DefaultListModel<String> model = new DefaultListModel<>();
-    java.util.Map<String,String> withRoles = controller.getGroupMembersWithRoles(id);
-    for (String m : members) model.addElement(m + " (" + withRoles.getOrDefault(m,"?") + ")");
+        Map<String,String> withRoles = controller.getGroupMembersWithRoles(id);
+        for (String m : members) {
+            model.addElement(m + " (" + withRoles.getOrDefault(m,"?") + ")");
+        }
         JList<String> list = new JList<>(model);
         JPanel p = new JPanel(new BorderLayout());
         p.add(new JScrollPane(list), BorderLayout.CENTER);
@@ -174,8 +181,8 @@ public class GroupManager extends JDialog {
             JOptionPane.showMessageDialog(parent, UiMessages.NO_PERM_ADD, UiMessages.WARN_TITLE, JOptionPane.WARNING_MESSAGE);
             return;
         }
-        java.util.Set<String> all = controller.getAllUsernames();
-        java.util.List<String> choices = new java.util.ArrayList<>(all);
+        Set<String> all = controller.getAllUsernames();
+        List<String> choices = new ArrayList<>(all);
         choices.remove(username);
         String picked = (String) JOptionPane.showInputDialog(parent, "Válassz felhasználót:", "Hozzáad", JOptionPane.PLAIN_MESSAGE, null, choices.toArray(), null);
         if (picked != null) {
@@ -210,12 +217,14 @@ public class GroupManager extends JDialog {
             JOptionPane.showMessageDialog(parent, "Szerep hozzáadása sikertelen.", "Hiba", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        java.util.Set<String> perms = promptPermissions(parent);
-    if (!perms.isEmpty()) controller.setRolePermissions(groupId, role, perms);
+        Set<String> perms = promptPermissions(parent);
+        if (!perms.isEmpty()) {
+            controller.setRolePermissions(groupId, role, perms);
+        }
         JOptionPane.showMessageDialog(parent, "Szerep hozzáadva.");
     }
 
-    private java.util.Set<String> promptPermissions(Component parent) {
+    private Set<String> promptPermissions(Component parent) {
         JPanel panel = new JPanel(new GridLayout(0,1));
         JCheckBox addMember = new JCheckBox("Tag hozzáadása", true);
         JCheckBox remMember = new JCheckBox("Tag eltávolítása", false);
@@ -225,14 +234,28 @@ public class GroupManager extends JDialog {
         JCheckBox readOnly = new JCheckBox("Csak olvasás", false);
         panel.add(addMember); panel.add(remMember); panel.add(delMsg); panel.add(delGroup); panel.add(send); panel.add(readOnly);
         int res = JOptionPane.showConfirmDialog(parent, panel, "Jogosultságok beállítása", JOptionPane.OK_CANCEL_OPTION);
-    if (res != JOptionPane.OK_OPTION) return new java.util.HashSet<>();
-        java.util.Set<String> perms = new java.util.HashSet<>();
-    if (addMember.isSelected()) perms.add(hu.prog3.offlinechatprog3.model.Permissions.GROUP_ADD_MEMBER);
-    if (remMember.isSelected()) perms.add(hu.prog3.offlinechatprog3.model.Permissions.GROUP_REMOVE_MEMBER);
-    if (delMsg.isSelected()) perms.add(hu.prog3.offlinechatprog3.model.Permissions.GROUP_DELETE_MESSAGES);
-    if (delGroup.isSelected()) perms.add(hu.prog3.offlinechatprog3.model.Permissions.GROUP_DELETE_GROUP);
-    if (send.isSelected()) perms.add(hu.prog3.offlinechatprog3.model.Permissions.GROUP_SEND_MESSAGE);
-    if (!readOnly.isSelected() && !send.isSelected()) perms.add(hu.prog3.offlinechatprog3.model.Permissions.GROUP_READ);
+        if (res != JOptionPane.OK_OPTION) {
+            return new HashSet<>();
+        }
+        Set<String> perms = new HashSet<>();
+        if (addMember.isSelected()) {
+            perms.add(hu.prog3.offlinechatprog3.model.Permissions.GROUP_ADD_MEMBER);
+        }
+        if (remMember.isSelected()) {
+            perms.add(hu.prog3.offlinechatprog3.model.Permissions.GROUP_REMOVE_MEMBER);
+        }
+        if (delMsg.isSelected()) {
+            perms.add(hu.prog3.offlinechatprog3.model.Permissions.GROUP_DELETE_MESSAGES);
+        }
+        if (delGroup.isSelected()) {
+            perms.add(hu.prog3.offlinechatprog3.model.Permissions.GROUP_DELETE_GROUP);
+        }
+        if (send.isSelected()) {
+            perms.add(hu.prog3.offlinechatprog3.model.Permissions.GROUP_SEND_MESSAGE);
+        }
+        if (!readOnly.isSelected() && !send.isSelected()) {
+            perms.add(hu.prog3.offlinechatprog3.model.Permissions.GROUP_READ);
+        }
         return perms;
     }
 
@@ -240,7 +263,7 @@ public class GroupManager extends JDialog {
         String sel = list.getSelectedValue();
         if (sel == null) return;
         String selectedUser = sel.contains(" (") ? sel.substring(0, sel.indexOf(" (")) : sel;
-        java.util.Set<String> roles = controller.getGroupAvailableRoles(groupId);
+        Set<String> roles = controller.getGroupAvailableRoles(groupId);
         String newRole = (String) JOptionPane.showInputDialog(parent, "Új szerep:", "Szerep módosítása", JOptionPane.PLAIN_MESSAGE, null, roles.toArray(), null);
         if (newRole == null) return;
         boolean ok = controller.setGroupMemberRole(groupId, selectedUser, newRole);

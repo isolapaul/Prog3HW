@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>hu.prog3</groupId>
     <artifactId>offline-chat-prog3</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
     <name>offline-chat-prog3</name>
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -14,7 +14,7 @@
         <sonar.organization>isolapaul</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.projectKey>isolapaul_prog3</sonar.projectKey>
-        
+        <sonar.coverage.exclusions>**/ui/**</sonar.coverage.exclusions>
     </properties>
     <dependencies>
         <!-- Using Java built-in serialization per specification; no JSON library required -->

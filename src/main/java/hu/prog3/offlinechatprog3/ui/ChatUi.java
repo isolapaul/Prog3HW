@@ -85,11 +85,9 @@ public final class ChatUi {
         
         // Végigmegyünk az összes üzeneten
         for (Message m : msgs) {
-            // Feladó ID-ból név készítése, ha nincs (null), akkor "?" legyen
             String who = usernameResolver.apply(m.getSenderId());
             if (who == null) who = "?";
             
-            // Üzenet hozzáfűzése: "prefix név: szöveg"
             chatArea.append(prefix + who + ": " + m.getContent() + "\n");
         }
         
@@ -139,7 +137,7 @@ public final class ChatUi {
         chatArea.setText("");
         
         // Dátum formázó: "2024-11-11 15:30" formátum
-        final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+        final DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
                 .withZone(ZoneId.systemDefault());
         
         // Prefix beállítása - TERNARY operátor
@@ -147,17 +145,12 @@ public final class ChatUi {
         
         // Végigmegyünk az összes üzeneten
         for (Message m : msgs) {
-            // Feladó ID-ból név készítése, ha nincs (null), akkor "?" legyen
             String who = usernameResolver.apply(m.getSenderId());
             if (who == null) who = "?";
             
-            // Ha én küldtem, akkor "Én" legyen, különben a feladó neve - TERNARY operátor
             String label = who.equals(me) ? "Én" : who;
+            String time = m.getTimestamp() == null ? "" : format.format(m.getTimestamp());
             
-            // Időbélyeg formázása
-            String time = m.getTimestamp() == null ? "" : fmt.format(m.getTimestamp());
-            
-            // Teljes sor összeállítása String.format-tal: "[időpont] prefix név: szöveg"
             chatArea.append(String.format("[%s] %s%s: %s\n", time, prefix, label, m.getContent()));
         }
         
