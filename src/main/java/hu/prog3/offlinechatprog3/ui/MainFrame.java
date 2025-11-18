@@ -5,26 +5,17 @@ import hu.prog3.offlinechatprog3.model.Message;
 
 import javax.swing.*;
 import java.awt.*;
-// action event imports not needed (using lambdas)
 import java.util.List;
 import java.util.Set;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Main application frame shown after successful login.
- *
- * It shows a list of friends (left) and a chat panel (right) for private conversations.
- * This minimal skeleton demonstrates the required Swing widgets (JMenu, JComboBox/JList/JTable
- * could be used — here we use JList for simplicity). The code is heavily commented to help
- * you understand and extend it.
- */
 public class MainFrame extends JFrame {
 
     private final transient AppController controller;
     private final String username;
 
-    // UI components
+    //UI komponensek
     private final DefaultListModel<String> friendsModel = new DefaultListModel<>();
     private final JList<String> friendsList = new JList<>(friendsModel);
     private static class GroupItem {
@@ -472,13 +463,13 @@ public class MainFrame extends JFrame {
     // Load conversation with a friend and show messages in the chat area
     private void loadFriendConversation(String friend) {
         List<Message> msgs = controller.getPrivateMessages(username, friend);
-        ChatUi.renderMessagesSimple(chatArea, msgs, controller::getUsernameForId, "");
+        ChatUi.renderMessages(chatArea, msgs, controller::getUsernameForId, "");
     }
 
     // Load conversation with a group and show messages in the chat area
     private void loadGroupConversation(UUID groupId, String groupName) {
         List<Message> msgs = controller.getGroupMessages(groupId);
-        ChatUi.renderMessagesSimple(chatArea, msgs, controller::getUsernameForId, "[" + groupName + "] ");
+        ChatUi.renderMessages(chatArea, msgs, controller::getUsernameForId, "[" + groupName + "] ");
     }
 
     // Refresh the friends list from controller

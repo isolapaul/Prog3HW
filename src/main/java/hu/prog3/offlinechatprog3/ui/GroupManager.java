@@ -1,6 +1,7 @@
 package hu.prog3.offlinechatprog3.ui;
 
 import hu.prog3.offlinechatprog3.controller.AppController;
+import hu.prog3.offlinechatprog3.model.Permissions;
 
 import javax.swing.*;
 import java.awt.*;
@@ -177,7 +178,7 @@ public class GroupManager extends JDialog {
     }
 
     private void handleAddMember(JDialog parent, DefaultListModel<String> model, UUID groupId) {
-        if (!controller.hasGroupPermission(groupId, username, hu.prog3.offlinechatprog3.model.Permissions.GROUP_ADD_MEMBER)) {
+        if (!controller.hasGroupPermission(groupId, username, Permissions.GROUP_ADD_MEMBER)) {
             JOptionPane.showMessageDialog(parent, UiMessages.NO_PERM_ADD, UiMessages.WARN_TITLE, JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -239,22 +240,22 @@ public class GroupManager extends JDialog {
         }
         Set<String> perms = new HashSet<>();
         if (addMember.isSelected()) {
-            perms.add(hu.prog3.offlinechatprog3.model.Permissions.GROUP_ADD_MEMBER);
+            perms.add(Permissions.GROUP_ADD_MEMBER);
         }
         if (remMember.isSelected()) {
-            perms.add(hu.prog3.offlinechatprog3.model.Permissions.GROUP_REMOVE_MEMBER);
+            perms.add(Permissions.GROUP_REMOVE_MEMBER);
         }
         if (delMsg.isSelected()) {
-            perms.add(hu.prog3.offlinechatprog3.model.Permissions.GROUP_DELETE_MESSAGES);
+            perms.add(Permissions.GROUP_DELETE_MESSAGES);
         }
         if (delGroup.isSelected()) {
-            perms.add(hu.prog3.offlinechatprog3.model.Permissions.GROUP_DELETE_GROUP);
+            perms.add(Permissions.GROUP_DELETE_GROUP);
         }
         if (send.isSelected()) {
-            perms.add(hu.prog3.offlinechatprog3.model.Permissions.GROUP_SEND_MESSAGE);
+            perms.add(Permissions.GROUP_SEND_MESSAGE);
         }
         if (!readOnly.isSelected() && !send.isSelected()) {
-            perms.add(hu.prog3.offlinechatprog3.model.Permissions.GROUP_READ);
+            perms.add(Permissions.GROUP_READ);
         }
         return perms;
     }

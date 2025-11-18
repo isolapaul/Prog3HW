@@ -3,7 +3,6 @@ package hu.prog3.offlinechatprog3.persistence;
 import hu.prog3.offlinechatprog3.model.Group;
 import hu.prog3.offlinechatprog3.model.Message;
 import hu.prog3.offlinechatprog3.model.User;
-import hu.prog3.offlinechatprog3.util.PasswordUtil;
 
 import java.io.Serializable;
 import java.util.*;
@@ -49,20 +48,14 @@ public class DataStore implements Serializable {
         return true;
     }
 
-    //bejelentkezés - passwordHash már BCrypt hash
-    public boolean authenticateUser(String username, String passwordHash) {
-        User u = usersByName.get(username);
-        if (u == null) return false;
-        try {
-            return PasswordUtil.checkPassword(passwordHash, u.getPasswordHash());
-        } catch (Exception e) {
-            return false;
-        }
+
+
+    public User getUserByName(String username) {
+        return usersByName.get(username);
     }
 
-    /** Felhasználó keresése név szerint. */
-    public Optional<User> findUserByName(String username) {
-        return Optional.ofNullable(usersByName.get(username));
+    public Group getGroup(UUID groupId) {
+        return groups.get(groupId);
     }
 
     // Friend management
@@ -172,95 +165,7 @@ public class DataStore implements Serializable {
         return g.getId();
     }
 
-    public boolean addGroupMember(UUID groupId, String username, String role) {
-        Group g = groups.get(groupId);
-        User u = usersByName.get(username);
-        if (g == null || u == null) return false;
-        g.addMember(u.getId(), role);
-        return true;
-    }
 
-    /** Return mapping of username -> role for a given group. */
-    public Map<String, String> getGroupMembersWithRoles(UUID groupId) {
-        Group g = groups.get(groupId);
-        if (g == null) return java.util.Collections.emptyMap();
-        Map<String, String> res = new HashMap<>();
-        for (Map.Entry<UUID, String> e : g.getMemberRoles().entrySet()) {
-            User u = usersById.get(e.getKey());
-            if (u != null) res.put(u.getUsername(), e.getValue());
-        }
-        return res;
-    }
-
-    /** Get the role name of a user in the group, or null if not a member. */
-    public String getGroupRole(UUID groupId, String username) {
-        Group g = groups.get(groupId);
-        User u = usersByName.get(username);
-        if (g == null || u == null) return null;
-        return g.getMemberRoles().get(u.getId());
-    }
-
-    /** Change a member's role in the group. */
-    public boolean setGroupMemberRole(UUID groupId, String username, String role) {
-        Group g = groups.get(groupId);
-        User u = usersByName.get(username);
-        if (g == null || u == null) return false;
-        try {
-            g.setMemberRole(u.getId(), role);
-            return true;
-        } catch (IllegalArgumentException ex) {
-            return false;
-        }
-    }
-
-    /** Available role names in the group. */
-    public java.util.Set<String> getAvailableRoles(UUID groupId) {
-        Group g = groups.get(groupId);
-        if (g == null) return java.util.Collections.emptySet();
-        return new java.util.HashSet<>(g.getRoles());
-    }
-
-    public boolean setRolePermissions(UUID groupId, String role, java.util.Set<String> perms) {
-        Group g = groups.get(groupId);
-        if (g == null) return false;
-        try {
-            g.setRolePermissions(role, perms);
-            return true;
-        } catch (IllegalArgumentException ex) {
-            return false;
-        }
-    }
-
-    public java.util.Set<String> getRolePermissions(UUID groupId, String role) {
-        Group g = groups.get(groupId);
-        if (g == null) return java.util.Collections.emptySet();
-        return g.getRolePermissions(role);
-    }
-
-    /**
-     * Return true if the given username is an administrator in the group.
-     */
-    public boolean isGroupAdmin(UUID groupId, String username) {
-        Group g = groups.get(groupId);
-        User u = usersByName.get(username);
-        if (g == null || u == null) return false;
-        return g.isAdmin(u.getId());
-    }
-
-    public boolean removeGroupMember(UUID groupId, String username) {
-        Group g = groups.get(groupId);
-        User u = usersByName.get(username);
-        if (g == null || u == null) return false;
-        g.removeMember(u.getId());
-        return true;
-    }
-
-    public boolean addCustomRole(UUID groupId, String role) {
-        Group g = groups.get(groupId);
-        if (g == null) return false;
-        g.addRole(role);
-        return true;
-    }
 
     // Messaging (private: key is sorted username pair joined by '#')
     private String privateKey(String a, String b) {
@@ -275,12 +180,9 @@ public class DataStore implements Serializable {
         return String.join("#", l);
     }
 
-    public void sendPrivateMessage(String fromUsername, String toUsername, String content) {
-        String key = privateKey(fromUsername, toUsername);
-        User sender = usersByName.get(fromUsername);
-        Message m = new Message(sender.getId(), null, content);
-        
-        // computeIfAbsent: ha nincs lista, létrehozza és beteszi, egyébként visszaadja a meglevőt
+    public void sendPrivateMessage(UUID senderId, String username1, String username2, String content) {
+        String key = privateKey(username1, username2);
+        Message m = new Message(senderId, null, content);
         privateMessages.computeIfAbsent(key, k -> new ArrayList<>()).add(m);
     }
 
@@ -289,9 +191,8 @@ public class DataStore implements Serializable {
         return privateMessages.getOrDefault(key, Collections.emptyList());
     }
 
-    public void sendGroupMessage(UUID groupId, String fromUsername, String content) {
-        User sender = usersByName.get(fromUsername);
-        Message m = new Message(sender.getId(), groupId, content);
+    public void sendGroupMessage(UUID senderId, UUID groupId, String content) {
+        Message m = new Message(senderId, groupId, content);
         groupMessages.computeIfAbsent(groupId, k -> new ArrayList<>()).add(m);
     }
 
@@ -299,27 +200,19 @@ public class DataStore implements Serializable {
         return groupMessages.getOrDefault(groupId, Collections.emptyList());
     }
 
-    /** Delete a single message from a group's message list by message id. */
-    public boolean deleteGroupMessage(UUID groupId, UUID messageId) {
+    public void deleteGroupMessage(UUID groupId, UUID messageId) {
         List<Message> list = groupMessages.get(groupId);
-        if (list == null) return false;
-        return list.removeIf(msg -> Objects.equals(msg.getId(), messageId));
+        if (list != null) {
+            list.removeIf(msg -> Objects.equals(msg.getId(), messageId));
+        }
     }
 
-    /** Delete a group and its messages. */
-    public boolean deleteGroup(UUID groupId) {
-        Group g = groups.remove(groupId);
+    public void deleteGroup(UUID groupId) {
+        groups.remove(groupId);
         groupMessages.remove(groupId);
-        return g != null;
     }
 
-    /** Permission check wrapper for group actions. */
-    public boolean hasGroupPermission(UUID groupId, String username, String permission) {
-        Group g = groups.get(groupId);
-        User u = usersByName.get(username);
-        if (g == null || u == null) return false;
-        return g.hasPermission(u.getId(), permission);
-    }
+
 
     // Some utility/test helpers
     public int userCount() { return usersByName.size(); }
@@ -346,20 +239,6 @@ public class DataStore implements Serializable {
             m.put(e.getKey(), e.getValue().getName());
         }
         return m;
-    }
-
-    /**
-     * Return usernames of members for a given group id.
-     */
-    public Set<String> getGroupMembers(java.util.UUID groupId) {
-        Group g = groups.get(groupId);
-        if (g == null) return Collections.emptySet();
-        Set<String> res = new HashSet<>();
-        for (java.util.UUID uid : g.getMemberRoles().keySet()) {
-            User u = usersById.get(uid);
-            if (u != null) res.add(u.getUsername());
-        }
-        return res;
     }
 
     /**

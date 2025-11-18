@@ -2,16 +2,12 @@ package hu.prog3.offlinechatprog3.persistence;
 
 import java.io.*;
 
-/**
- * Fájl kezelő osztály az adatok mentéséért és betöltéséért.
- * Java szerializációt használ a DataStore objektum perzisztenciájához.
- * Utility class, csak statikus metódusokat tartalmaz.
- */
+//statikus fájl kezelő osztály
 public class FileManager {
 
-    private FileManager() { /* utility class */ }
+    private FileManager() { }
 
-    /** Adatok mentése fájlba szerializációval. */
+    //adatok mentése
     public static boolean save(DataStore store, File file) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
             oos.writeObject(store);
@@ -22,17 +18,12 @@ public class FileManager {
         }
     }
 
-    /** Adatok betöltése fájlból deszerializációval. Pattern matching használata. */
+    //adatok betöltése
     public static DataStore load(File file) {
         if (!file.exists()) return null;
         
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
-            Object o = ois.readObject();
-            // Pattern matching instanceof (Java 16+)
-            if (o instanceof DataStore dataStore) {
-                return dataStore;
-            }
-            return null;
+            return (DataStore) ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
             return null;
