@@ -88,7 +88,7 @@ public final class ChatUi {
             String who = usernameResolver.apply(m.getSenderId());
             if (who == null) who = "?";
             
-            chatArea.append(prefix + who + ": " + m.getContent() + "\n");
+            chatArea.append(String.format("%s%s: %s%n", prefix, who, m.getContent()));
         }
         
         // Görgetés az aljára (hogy az új üzenetek látszódjanak)
@@ -151,7 +151,7 @@ public final class ChatUi {
             String label = who.equals(me) ? "Én" : who;
             String time = m.getTimestamp() == null ? "" : format.format(m.getTimestamp());
             
-            chatArea.append("[" + time + "] " + prefix + label + ": " + m.getContent() + "\n");
+            chatArea.append(String.format("[%s] %s%s: %s%n", time, prefix, label, m.getContent()));
         }
         
         // Görgetés az aljára
