@@ -2,6 +2,7 @@ package hu.prog3.offlinechatprog3.controller;
 
 import hu.prog3.offlinechatprog3.model.Message;
 import hu.prog3.offlinechatprog3.model.Permissions;
+import hu.prog3.offlinechatprog3.util.PasswordUtil;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,6 +20,10 @@ class AppControllerTest {
         if (f.exists()) f.delete();
     }
 
+    private String hash(String pw) {
+        return PasswordUtil.hashPassword(pw);
+    }
+
     @AfterEach
     void tearDown() {
         cleanupDataFile();
@@ -28,8 +33,8 @@ class AppControllerTest {
     void friendRequestLifecycle_and_privateMessaging() {
         
         AppController c = new AppController();
-        assertTrue(c.registerUser("tesztElek", "p"));
-        assertTrue(c.registerUser("bob", "p"));
+        assertTrue(c.registerUser("tesztElek", hash("p")));
+        assertTrue(c.registerUser("bob", hash("p")));
 
         assertTrue(c.sendFriendRequest("tesztElek", "bob"));
         assertTrue(c.acceptFriendRequest("bob", "tesztElek"));
