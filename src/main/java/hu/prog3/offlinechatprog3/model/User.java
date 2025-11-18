@@ -17,7 +17,7 @@ import java.util.UUID;
  * HOGYAN MŰKÖDIK?
  * 1. Amikor létrehozunk egy új felhasználót, automatikusan kap egy egyedi UUID azonosítót
  * 2. A username a felhasználó neve (pl. "János")
- * 3. A passwordHash a jelszó (egyszerűsített változatban sima szöveg, de hívjuk "hash"-nek)
+ * 3. A passwordHash a jelszó SHA-256 hash-e (nem plain text!)
  * 
  * SERIALIZABLE MAGYARÁZAT:
  * A Serializable interface azt jelenti, hogy ezt az objektumot le lehet menteni fájlba,
@@ -53,7 +53,7 @@ public class User implements Serializable {
      * Amikor új felhasználót hozunk létre névvel és jelszóval.
      * 
      * @param username A felhasználó neve (pl. "peter")
-     * @param passwordHash A jelszó (egyszerűsített verzió)
+     * @param passwordHash A jelszó SHA-256 hash-e
      */
     public User(String username, String passwordHash) {
         this.id = UUID.randomUUID(); // Egyedi ID generálás
@@ -106,7 +106,7 @@ public class User implements Serializable {
 
     /**
      * JELSZÓ BEÁLLÍTÁSA
-     * @param passwordHash Az új jelszó
+     * @param passwordHash Az új jelszó SHA-256 hash-e
      */
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;

@@ -3,154 +3,36 @@ package hu.prog3.offlinechatprog3.persistence;
 import hu.prog3.offlinechatprog3.model.Group;
 import hu.prog3.offlinechatprog3.model.Message;
 import hu.prog3.offlinechatprog3.model.User;
+import hu.prog3.offlinechatprog3.util.PasswordUtil;
 
 import java.io.Serializable;
 import java.util.*;
 
-/**
- * Központi adattároló osztály az alkalmazás összes adatához.
- * Serializable, így az egész állapot menthető fájlba.
- */
 public class DataStore implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    // Felhasználók név és ID szerint
+    //felhasználó név és ID szerint
     private final Map<String, User> usersByName = new HashMap<>();
     private final Map<UUID, User> usersById = new HashMap<>();
     
-    // Barátság kezelés
-    /**
-     * BARÁTSÁGOK TÁROLÁSA
-     * Map<String, Set<String>> = Minden felhasználónak van egy halmaza barátokról
-     * 
-     * MIÉRT SET?
-     * - Egy ember csak egyszer lehet barát (nincs duplikáció)
-     * - Gyors ellenőrzés: barát-e valaki
-     * 
-     * PÉLDA:
-     * {
-     *   "anna" -> {"bela", "cecil"},  // Anna barátai: Béla és Cecil
-     *   "bela" -> {"anna", "dora"},   // Béla barátai: Anna és Dóra
-     *   "cecil" -> {"anna"}           // Cecil barátja: Anna
-     * }
-     * 
-     * FONTOS! A barátság KÉTIRÁNYÚ:
-     * Ha Anna barátja Bélának, akkor Béla is barátja Annának.
-     * Mindkét irányban benne kell lennie!
-     */
+    //barátság kezelés
     private final Map<String, Set<String>> friends = new HashMap<>();
-    
-    /**
-     * BEJÖVŐ BARÁTKÉRÉSEK
-     * Ki kér barátságot TŐLEM?
-     * 
-     * PÉLDA:
-     * {
-     *   "bela" -> {"anna", "cecil"},  // Béla két kérést kapott: Annától és Ceciltől
-     *   "dora" -> {"bela"}            // Dóra egy kérést kapott: Bélától
-     * }
-     */
+    //bejövő barátkérelmek
     private final Map<String, Set<String>> incomingFriendRequests = new HashMap<>();
-    
-    /**
-     * KIMENŐ BARÁTKÉRÉSEK
-     * KINEK küldtem barátkérést?
-     * 
-     * PÉLDA:
-     * {
-     *   "anna" -> {"bela"},    // Anna küldött kérést Bélának
-     *   "cecil" -> {"bela"}    // Cecil küldött kérést Bélának
-     * }
-     * 
-     * FONTOS! Ugyanaz a kapcsolat két helyen is szerepel:
-     * - incomingFriendRequests["bela"] tartalmazza "anna"-t
-     * - outgoingFriendRequests["anna"] tartalmazza "bela"-t
-     * Ez azért kell, hogy mindkét irányból gyorsan lehessen keresni!
-     */
+    //kimenő barátkérelmek
     private final Map<String, Set<String>> outgoingFriendRequests = new HashMap<>();
-
-    // ============================================================
-    // CSOPORT TÁROLÁS
-    // ============================================================
-    
-    /**
-     * ÖSSZES CSOPORT
-     * Map<UUID, Group> = Csoport ID -> Group objektum
-     * 
-     * PÉLDA:
-     * {
-     *   uuid5 -> Group{id=uuid5, name="Prog3 csoport", members=...},
-     *   uuid6 -> Group{id=uuid6, name="Barátok", members=...}
-     * }
-     */
+    //csoportok tárolása
     private final Map<UUID, Group> groups = new HashMap<>();
-
-    // ============================================================
-    // ÜZENET TÁROLÁS
-    // ============================================================
-    
-    /**
-     * PRIVÁT ÜZENETEK (két felhasználó között)
-     * Map<String, List<Message>> = beszélgetés kulcs -> üzenetek listája
-     * 
-     * MIÉRT ILYEN BONYOLULT A KULCS?
-     * Két felhasználó közti beszélgetéshez kell egy egyedi kulcs.
-     * Probléma: Anna->Béla és Béla->Anna UGYANAZ a beszélgetés!
-     * 
-     * MEGOLDÁS: Rendezett kulcs
-     * - Anna és Béla közti beszélgetés: "anna#bela"
-     * - Béla és Anna közti beszélgetés: szintén "anna#bela" (ABC sorrendben!)
-     * Lásd: privateKey() metódus
-     * 
-     * PÉLDA:
-     * {
-     *   "anna#bela" -> [
-     *     Message{senderId=annaId, content="Szia Béla!"},
-     *     Message{senderId=belaId, content="Helló Anna!"}
-     *   ],
-     *   "bela#cecil" -> [
-     *     Message{senderId=belaId, content="Hogy vagy?"}
-     *   ]
-     * }
-     */
+    //üzenet tárolás
     private final Map<String, List<Message>> privateMessages = new HashMap<>();
-    
-    /**
-     * CSOPORT ÜZENETEK
-     * Map<UUID, List<Message>> = csoport ID -> üzenetek listája
-     * 
-     * EGYSZERŰBB mint a privát!
-     * Minden csoportnak van egy ID-ja, azon keresztül keresünk.
-     * 
-     * PÉLDA:
-     * {
-     *   groupId1 -> [
-     *     Message{senderId=annaId, content="Sziasztok!"},
-     *     Message{senderId=belaId, content="Helló!"}
-     *   ]
-     * }
-     */
+    //csoport üzenetek tárolása
     private final Map<UUID, List<Message>> groupMessages = new HashMap<>();
 
-    /**
-     * KONSTRUKTOR
-     * Üres konstruktor - a mezők már inicializálva vannak (new HashMap<>())
-     * amikor az objektumot létrehozzuk.
-     */
     public DataStore() {
-        // Az összes Map és Set már létrejött a field inicializálásakor
+        // Az összes Map létrejött az inicializálásakor
     }
-
-    // ============================================================
-    // FELHASZNÁLÓ MŰVELETEK
-    // ============================================================
-    
-    /**
-     * Új felhasználó regisztrálása.
-     * Létrehoz egy új User objektumot, hozzáadja mindkét map-hez,
-     * és inicializálja az üres barát/kérés halmazokat.
-     */
+    //regisztráció
     public boolean registerUser(String username, String passwordHash) {
         if (username == null || username.isBlank() || usersByName.containsKey(username)) {
             return false;
@@ -167,13 +49,15 @@ public class DataStore implements Serializable {
         return true;
     }
 
-    /**
-     * Bejelentkezés ellenőrzése (autentikáció).
-     * Objects.equals() biztonságosan kezeli a null-t is.
-     */
+    //bejelentkezés - passwordHash már BCrypt hash
     public boolean authenticateUser(String username, String passwordHash) {
         User u = usersByName.get(username);
-        return u != null && Objects.equals(u.getPasswordHash(), passwordHash);
+        if (u == null) return false;
+        try {
+            return PasswordUtil.checkPassword(passwordHash, u.getPasswordHash());
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /** Felhasználó keresése név szerint. */
