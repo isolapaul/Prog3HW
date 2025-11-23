@@ -29,7 +29,7 @@ public class DataStore implements Serializable {
     private final Map<UUID, List<Message>> groupMessages = new HashMap<>();
 
     public DataStore() {
-        // Az összes Map létrejött az inicializálásakor
+        //az összes Map létrejött az inicializálásakor
     }
     //regisztráció
     public boolean registerUser(String username, String passwordHash) {
@@ -58,7 +58,7 @@ public class DataStore implements Serializable {
         return groups.get(groupId);
     }
 
-    // Friend management
+    //barát hozzáadás
     public boolean addFriend(String a, String b) {
         if (!usersByName.containsKey(a) || !usersByName.containsKey(b)) return false;
         friends.get(a).add(b);
@@ -66,10 +66,7 @@ public class DataStore implements Serializable {
         return true;
     }
 
-    /**
-     * Send a friend request from 'from' to 'to'. Returns false if users don't exist,
-     * if already friends, or if a request already exists.
-     */
+    //barát kérés küldése
     public boolean sendFriendRequest(String from, String to) {
         if (!usersByName.containsKey(from) || !usersByName.containsKey(to)) return false;
         if (areFriends(from, to)) return false;
@@ -82,23 +79,17 @@ public class DataStore implements Serializable {
         return true;
     }
 
-    /**
-     * Get a defensive copy of pending incoming friend requests for a user.
-     */
+    //bejövő barátkérelmek lekérdezése
     public Set<String> getIncomingFriendRequests(String username) {
         return new HashSet<>(incomingFriendRequests.getOrDefault(username, Collections.emptySet()));
     }
 
-    /**
-     * Return outgoing friend requests sent by the given user.
-     */
+    //kimenő barátkérelmek lekérdezése
     public Set<String> getOutgoingFriendRequests(String username) {
         return new HashSet<>(outgoingFriendRequests.getOrDefault(username, Collections.emptySet()));
     }
 
-    /**
-     * Accept a friend request where 'username' accepts a request from 'from'.
-     */
+    //barát kérés elfogadása
     public boolean acceptFriendRequest(String username, String from) {
         if (!usersByName.containsKey(username) || !usersByName.containsKey(from)) return false;
         Set<String> incoming = incomingFriendRequests.get(username);
@@ -111,9 +102,7 @@ public class DataStore implements Serializable {
         return true;
     }
 
-    /**
-     * Reject (remove) a friend request without adding friendship.
-     */
+    //barát kérés elutasítása
     public boolean rejectFriendRequest(String username, String from) {
         if (!usersByName.containsKey(username) || !usersByName.containsKey(from)) return false;
         Set<String> incoming = incomingFriendRequests.get(username);
@@ -125,9 +114,7 @@ public class DataStore implements Serializable {
         return removed;
     }
 
-    /**
-     * Cancel an outgoing friend request: 'from' cancels a previously sent request to 'to'.
-     */
+    //kimenő barát kérés visszavonása
     public boolean cancelOutgoingFriendRequest(String from, String to) {
         if (!usersByName.containsKey(from) || !usersByName.containsKey(to)) return false;
         Set<String> outgoing = outgoingFriendRequests.get(from);
@@ -138,20 +125,20 @@ public class DataStore implements Serializable {
         if (incoming != null) removedIn = incoming.remove(from);
         return removedOut || removedIn;
     }
-
+    //barát eltávolítása
     public boolean removeFriend(String a, String b) {
         if (!usersByName.containsKey(a) || !usersByName.containsKey(b)) return false;
         boolean ra = friends.get(a).remove(b);
         boolean rb = friends.get(b).remove(a);
         return ra || rb;
     }
-
+    //barátság ellenőrzése
     public boolean areFriends(String a, String b) {
         if (!usersByName.containsKey(a) || !usersByName.containsKey(b)) return false;
         return friends.get(a).contains(b);
     }
 
-    // Group management
+    //csoport kezelés
     public UUID createGroup(String name, String creatorUsername) {
         Group g = new Group(name);
         groups.put(g.getId(), g);
@@ -167,58 +154,53 @@ public class DataStore implements Serializable {
 
 
 
-    // Messaging (private: key is sorted username pair joined by '#')
+    //privát üzenet kulcs generálása
     private String privateKey(String a, String b) {
         if (a == null) {
-            throw new IllegalArgumentException("First username (a) cannot be null");
+            throw new IllegalArgumentException("Első felhasználónév (a) nem lehet null");
         }
         if (b == null) {
-            throw new IllegalArgumentException("Second username (b) cannot be null");
+            throw new IllegalArgumentException("Második felhasználónév (b) nem lehet null");
         }
         List<String> l = Arrays.asList(a, b);
         Collections.sort(l);
         return String.join("#", l);
     }
-
+    //privát üzenet küldése
     public void sendPrivateMessage(UUID senderId, String username1, String username2, String content) {
         String key = privateKey(username1, username2);
         Message m = new Message(senderId, null, content);
         privateMessages.computeIfAbsent(key, k -> new ArrayList<>()).add(m);
     }
-
+    //privát üzenetek lekérdezése
     public List<Message> getPrivateMessages(String a, String b) {
         String key = privateKey(a, b);
         return privateMessages.getOrDefault(key, Collections.emptyList());
     }
-
+    //csoport üzenet küldése
     public void sendGroupMessage(UUID senderId, UUID groupId, String content) {
         Message m = new Message(senderId, groupId, content);
         groupMessages.computeIfAbsent(groupId, k -> new ArrayList<>()).add(m);
     }
-
+    //csoport üzenetek lekérdezése
     public List<Message> getGroupMessages(UUID groupId) {
         return groupMessages.getOrDefault(groupId, Collections.emptyList());
     }
-
+    //csoport üzenet törlése
     public void deleteGroupMessage(UUID groupId, UUID messageId) {
         List<Message> list = groupMessages.get(groupId);
         if (list != null) {
             list.removeIf(msg -> Objects.equals(msg.getId(), messageId));
         }
     }
-
+    //csoport törlése
     public void deleteGroup(UUID groupId) {
         groups.remove(groupId);
         groupMessages.remove(groupId);
     }
 
-
-
-    // Some utility/test helpers
     public int userCount() { return usersByName.size(); }
-
     public int groupCount() { return groups.size(); }
-
     public void clearAll() {
         usersByName.clear();
         usersById.clear();
@@ -229,10 +211,7 @@ public class DataStore implements Serializable {
         incomingFriendRequests.clear();
         outgoingFriendRequests.clear();
     }
-
-    /**
-     * Return a map of group id -> group name for all groups. Defensive copy.
-     */
+    //összes csoport lekérdezése
     public Map<java.util.UUID, String> getAllGroups() {
         Map<java.util.UUID, String> m = new HashMap<>();
         for (Map.Entry<java.util.UUID, Group> e : groups.entrySet()) {
@@ -240,25 +219,16 @@ public class DataStore implements Serializable {
         }
         return m;
     }
-
-    /**
-     * Return a defensive copy of the friend usernames for the given user.
-     */
+    //felhasználó barátainak lekérdezése
     public java.util.Set<String> getFriends(String username) {
         return new java.util.HashSet<>(friends.getOrDefault(username, java.util.Collections.emptySet()));
     }
-
-    /**
-     * Resolve username for a given user UUID. Returns null if not found.
-     */
+    //felhasználó nevének lekérdezése azonosító alapján
     public String getUsernameById(UUID id) {
         User u = usersById.get(id);
         return u == null ? null : u.getUsername();
     }
-
-    /**
-     * Return all registered usernames (defensive copy).
-     */
+    //összes felhasználónév lekérdezése
     public java.util.Set<String> getAllUsernames() {
         return new java.util.HashSet<>(usersByName.keySet());
     }

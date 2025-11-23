@@ -5,162 +5,74 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * ÜZENET MODELL OSZTÁLY
- * 
- * Ez az osztály egy chat üzenetet reprezentál.
- * 
- * MIÉRT VAN RÁ SZÜKSÉG?
- * - Tárolni kell, hogy KI küldte az üzenetet (senderId)
- * - Tárolni kell, hogy HOL lett küldve (conversationId - lehet privát beszélgetés vagy csoport)
- * - Tárolni kell MIKOR küldték (timestamp)
- * - Tárolni kell, hogy MI a tartalma (content)
- * 
- * HOGYAN MŰKÖDIK?
- * Ez az osztály UNIVERZÁLIS - ugyanazt az osztályt használjuk:
- * - Privát üzeneteknél (két felhasználó között)
- * - Csoport üzeneteknél (csoportban)
- * 
- * A conversationId határozza meg, hogy hova tartozik:
- * - Privát üzenetnél: null vagy egy generált conversation ID
- * - Csoport üzenetnél: a csoport ID-ja
- */
 public class Message implements Serializable {
 
-    // Fájl mentéshez szükséges verzió azonosító
+    //fájl mentéshez szükséges verzió azonosító
     private static final long serialVersionUID = 1L;
-
-    // MEZŐK (az üzenet adatai):
-    
-    /** Egyedi azonosító - minden üzenetnek külön ID-ja van */
+    //egyedi azonosító - minden üzenetnek külön ID-ja van
     private UUID id;
-    
-    /** Ki küldte az üzenetet? A küldő felhasználó ID-ja */
+    //küldő felhasználó ID-ja
     private UUID senderId;
-    
-    /** Hova lett küldve? Csoport ID vagy beszélgetés ID */
+    //csoport ID vagy beszélgetés ID
     private UUID conversationId;
-    
-    /** Mi az üzenet szövege? Pl. "Szia, hogy vagy?" */
+    //üzenet szövege
     private String content;
-    
-    /** Mikor lett küldve? Időpont tárolása */
+    //időpont tárolása
     private Instant timestamp;
-
-    /**
-     * KONSTRUKTOR
-     * Létrehoz egy új üzenetet minden szükséges adattal.
-     * 
-     * @param senderId Ki küldi az üzenetet (felhasználó ID)
-     * @param conversationId Hova megy az üzenet (beszélgetés vagy csoport ID)
-     * @param content Az üzenet szövege
-     */
+    //konstruktor
     public Message(UUID senderId, UUID conversationId, String content) {
-        this.id = UUID.randomUUID(); // Egyedi ID generálás
+        this.id = UUID.randomUUID(); //egyedi id generálása
         this.senderId = senderId;
         this.conversationId = conversationId;
         this.content = content;
-        this.timestamp = Instant.now(); // Jelenlegi időpont automatikus rögzítése
+        this.timestamp = Instant.now(); //jelenlegi időpont
     }
-
-    // GETTER ÉS SETTER METÓDUSOK
-    // Ezekkel tudjuk lekérdezni és módosítani az üzenet adatait
-    
-    /**
-     * ÜZENET ID LEKÉRDEZÉSE
-     * @return Az üzenet egyedi azonosítója
-     */
+    //üzenet id lekérdezése
     public UUID getId() {
         return id;
     }
-
-    /**
-     * KÜLDŐ ID LEKÉRDEZÉSE
-     * @return Ki küldte az üzenetet (felhasználó ID)
-     */
+    //küldő id lekérdezése
     public UUID getSenderId() {
         return senderId;
     }
-
-    /**
-     * KÜLDŐ ID BEÁLLÍTÁSA
-     * @param senderId Az új küldő ID
-     */
+    //küldő id beállítása
     public void setSenderId(UUID senderId) {
         this.senderId = senderId;
     }
-
-    /**
-     * BESZÉLGETÉS/CSOPORT ID LEKÉRDEZÉSE
-     * @return Hova tartozik ez az üzenet (conversation vagy group ID)
-     */
+    //csoport/beszelgetés id lekérdezése
     public UUID getConversationId() {
         return conversationId;
     }
-
-    /**
-     * BESZÉLGETÉS/CSOPORT ID BEÁLLÍTÁSA
-     * @param conversationId Az új conversation/group ID
-     */
+    //csoport/beszelgetés id beállítása
     public void setConversationId(UUID conversationId) {
         this.conversationId = conversationId;
     }
-
-    /**
-     * ÜZENET TARTALOM LEKÉRDEZÉSE
-     * @return Az üzenet szövege
-     */
+    //üzenet tartalmának lekérdezése
     public String getContent() {
         return content;
     }
-
-    /**
-     * ÜZENET TARTALOM BEÁLLÍTÁSA
-     * @param content Az új üzenet szöveg
-     */
+    //üzenet tartalmának beállítása
     public void setContent(String content) {
         this.content = content;
     }
-
-    /**
-     * KÜLDÉSI IDŐPONT LEKÉRDEZÉSE
-     * @return Mikor lett elküldve ez az üzenet (Instant = pontos időpont)
-     */
+    //időpont lekérdezése
     public Instant getTimestamp() {
         return timestamp;
     }
-
-    /**
-     * KÜLDÉSI IDŐPONT BEÁLLÍTÁSA
-     * @param timestamp Az új időpont
-     */
+    //időpont beállítása
     public void setTimestamp(Instant timestamp) {
         this.timestamp = timestamp;
     }
 
-    /**
-     * EGYENLŐSÉG ELLENŐRZÉS
-     * Két üzenet akkor egyenlő, ha az ID-juk megegyezik.
-     * 
-     * MIÉRT AZ ID ALAPJÁN?
-     * Mert két különböző üzenet lehet ugyanaz a szöveg ugyanattól a felhasználótól,
-     * de a küldési időpont és ID mindig egyedi.
-     * 
-     * @param o A másik objektum
-     * @return true ha azonos üzenet, false ha nem
-     */
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true; // Ugyanaz az objektum
-        if (o == null || getClass() != o.getClass()) return false; // null vagy nem Message
-        Message message = (Message) o; // Átkasztolás Message típusra
-        return Objects.equals(id, message.id); // ID összehasonlítás
+        if (this == o) return true; 
+        if (o == null || getClass() != o.getClass()) return false;
+        Message message = (Message) o; 
+        return Objects.equals(id, message.id); 
     }
 
-    /**
-     * HASH KÓD GENERÁLÁS
-     * Az ID alapján számolt hash kód gyors kereséshez.
-     */
+    //hash kód generálása
     @Override
     public int hashCode() {
         return Objects.hash(id);
