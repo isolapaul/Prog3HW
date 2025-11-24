@@ -35,33 +35,17 @@ public class Message implements Serializable {
     public UUID getSenderId() {
         return senderId;
     }
-    //küldő id beállítása
-    public void setSenderId(UUID senderId) {
-        this.senderId = senderId;
-    }
     //csoport/beszelgetés id lekérdezése
     public UUID getConversationId() {
         return conversationId;
-    }
-    //csoport/beszelgetés id beállítása
-    public void setConversationId(UUID conversationId) {
-        this.conversationId = conversationId;
     }
     //üzenet tartalmának lekérdezése
     public String getContent() {
         return content;
     }
-    //üzenet tartalmának beállítása
-    public void setContent(String content) {
-        this.content = content;
-    }
     //időpont lekérdezése
     public Instant getTimestamp() {
         return timestamp;
-    }
-    //időpont beállítása
-    public void setTimestamp(Instant timestamp) {
-        this.timestamp = timestamp;
     }
 
     @Override

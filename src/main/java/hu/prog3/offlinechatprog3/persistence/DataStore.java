@@ -83,7 +83,8 @@ public class DataStore implements Serializable {
     public boolean acceptFriendRequest(String username, String from) {
         if (!usersByName.containsKey(username) || !usersByName.containsKey(from)) return false;
         Set<String> incoming = incomingFriendRequests.get(username);
-        if (incoming == null ) return false;
+        if (incoming == null) return false;
+        if (!incoming.remove(from)) return false;
         // add friendship
         friends.get(username).add(from);
         friends.get(from).add(username);
@@ -143,14 +144,8 @@ public class DataStore implements Serializable {
         return g.getId();
     }
 
-    //privát üzenet kulcs generálása
+    //privát kulcs generálása két felhasználó között
     private String privateKey(String a, String b) {
-        if (a == null) {
-            throw new IllegalArgumentException("Első felhasználónév (a) nem lehet null");
-        }
-        if (b == null) {
-            throw new IllegalArgumentException("Második felhasználónév (b) nem lehet null");
-        }
         List<String> l = Arrays.asList(a, b);
         Collections.sort(l);
         return String.join("#", l);

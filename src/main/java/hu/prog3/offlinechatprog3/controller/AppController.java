@@ -29,12 +29,12 @@ public class AppController {
         updateTimestamp();
     }
 
-    // UI-nak kell a DataStore referencia, hogy közvetlenül hívhassa ahol nincs business logic
+    
     public DataStore getDataStore() {
         return store;
     }
 
-    // Frissíti a timestamp-et (mentés vagy betöltés után)
+    //timestamp frissítése
     private void updateTimestamp() {
         if (dataFile.exists()) {
             lastLoadedTimestamp = dataFile.lastModified();
@@ -208,7 +208,6 @@ public class AppController {
         var user = store.getUserByName(from);
         if (user == null) return false;
         store.sendGroupMessage(user.getId(), groupId, content);
-        saveStore();
         return saveStore();
     }
 
@@ -232,5 +231,30 @@ public class AppController {
         store.sendPrivateMessage(user.getId(), from, to, content);
         saveStore();
         return true;
+    }
+
+    //barátkérés küldése
+    public boolean sendFriendRequest(String from, String to) {
+        return executeAndSave(() -> store.sendFriendRequest(from, to));
+    }
+
+    //barát eltávolítása
+    public boolean removeFriend(String a, String b) {
+        return executeAndSave(() -> store.removeFriend(a, b));
+    }
+
+    //barátkérés elfogadása
+    public boolean acceptFriendRequest(String username, String from) {
+        return executeAndSave(() -> store.acceptFriendRequest(username, from));
+    }
+
+    //barátkérés elutasítása
+    public boolean rejectFriendRequest(String username, String from) {
+        return executeAndSave(() -> store.rejectFriendRequest(username, from));
+    }
+
+    //kimenő barátkérés visszavonása
+    public boolean cancelOutgoingFriendRequest(String from, String to) {
+        return executeAndSave(() -> store.cancelOutgoingFriendRequest(from, to));
     }
 }

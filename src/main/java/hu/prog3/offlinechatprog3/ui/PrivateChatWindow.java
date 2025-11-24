@@ -4,7 +4,6 @@ import hu.prog3.offlinechatprog3.controller.AppController;
 import hu.prog3.offlinechatprog3.model.Message;
 
 import java.util.List;
-import java.util.Set;
 
 public class PrivateChatWindow extends BaseChatWindow {
     private final String other;
@@ -22,9 +21,7 @@ public class PrivateChatWindow extends BaseChatWindow {
 
     @Override
     protected boolean canSendNow() {
-        Set<String> friends = controller.getDataStore().getFriends(me);
-        
-        return friends != null && friends.contains(other);
+        return controller.getDataStore().areFriends(me, other);
     }
 
     @Override

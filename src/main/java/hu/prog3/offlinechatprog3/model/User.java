@@ -23,24 +23,12 @@ public class User implements Serializable {
     public UUID getId() {
         return id;
     }
-    //id beállítása
-    public void setId(UUID id) {
-        this.id = id;
-    }
     //felhasználónév lekérdezése
     public String getUsername() {
         return username;
     }
-    //felhasználónév beállítása
-    public void setUsername(String username) {
-        this.username = username;
-    }
     //jelszó lekérdezése
     public String getPasswordHash() {
         return passwordHash;
-    }
-    //jelszó beállítása
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
     }
 }
