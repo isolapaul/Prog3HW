@@ -17,12 +17,12 @@ public class PrivateChatWindow extends BaseChatWindow {
 
     @Override
     protected List<Message> fetchMessages() {
-        return controller.getPrivateMessages(me, other);
+        return controller.getDataStore().getPrivateMessages(me, other);
     }
 
     @Override
     protected boolean canSendNow() {
-        Set<String> friends = controller.getFriendsOf(me);
+        Set<String> friends = controller.getDataStore().getFriends(me);
         
         return friends != null && friends.contains(other);
     }

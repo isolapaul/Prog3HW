@@ -48,22 +48,12 @@ public class DataStore implements Serializable {
         return true;
     }
 
-
-
     public User getUserByName(String username) {
         return usersByName.get(username);
     }
 
     public Group getGroup(UUID groupId) {
         return groups.get(groupId);
-    }
-
-    //barát hozzáadás
-    public boolean addFriend(String a, String b) {
-        if (!usersByName.containsKey(a) || !usersByName.containsKey(b)) return false;
-        friends.get(a).add(b);
-        friends.get(b).add(a);
-        return true;
     }
 
     //barát kérés küldése
@@ -95,7 +85,8 @@ public class DataStore implements Serializable {
         Set<String> incoming = incomingFriendRequests.get(username);
         if (incoming == null || !incoming.remove(from)) return false;
         // add friendship
-        addFriend(username, from);
+        friends.get(username).add(from);
+        friends.get(from).add(username);
         // remove outgoing entry for the requester
         Set<String> outgoing = outgoingFriendRequests.get(from);
         if (outgoing != null) outgoing.remove(username);
@@ -199,18 +190,6 @@ public class DataStore implements Serializable {
         groupMessages.remove(groupId);
     }
 
-    public int userCount() { return usersByName.size(); }
-    public int groupCount() { return groups.size(); }
-    public void clearAll() {
-        usersByName.clear();
-        usersById.clear();
-        friends.clear();
-        groups.clear();
-        privateMessages.clear();
-        groupMessages.clear();
-        incomingFriendRequests.clear();
-        outgoingFriendRequests.clear();
-    }
     //összes csoport lekérdezése
     public Map<java.util.UUID, String> getAllGroups() {
         Map<java.util.UUID, String> m = new HashMap<>();

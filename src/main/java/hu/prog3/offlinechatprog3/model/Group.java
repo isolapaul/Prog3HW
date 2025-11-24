@@ -57,20 +57,19 @@ public class Group implements Serializable {
     }
 
     public void addRole(String role) {
-        roles.add(role); // Szerep hozzáadása
-        rolePermissions.putIfAbsent(role, new HashSet<>()); // Üres jogosultság halmaz létrehozása
+        roles.add(role);
+        rolePermissions.putIfAbsent(role, new HashSet<>()); 
     }
 
     public void setRolePermissions(String role, Set<String> perms) {
         if (!roles.contains(role)) {
             throw new IllegalArgumentException("Ismeretlen szerep: " + role);
         }
-        // Új halmazt hozunk létre (defensive copy), hogy a külső módosítások ne érintsék
         rolePermissions.put(role, new HashSet<>(perms));
     }
 
     public Set<String> getRolePermissions(String role) {
-        return new HashSet<>(rolePermissions.getOrDefault(role, java.util.Collections.emptySet()));
+        return new HashSet<>(rolePermissions.getOrDefault(role, Collections.emptySet()));
     }
 
     public void addMember(UUID userId, String role) {
@@ -94,20 +93,14 @@ public class Group implements Serializable {
         return ROLE_ADMIN.equals(role); // Összehasonlítjuk "Adminisztrátor"-ral
     }
 
-   
+    //jogosultság ellenőrzése
     public boolean hasPermission(UUID userId, String permission) {
-        // 1. Lekérdezzük a felhasználó szerepét
         String role = memberRoles.get(userId);
-        
-        // 2. Ha nincs szerepe (nem tagja a csoportnak), nincs joga
         if (role == null) return false;
         
-        // 3. Lekérdezzük a szerep jogosultságait
-        //    Ha a szerep nem létezik, üres halmazt adunk vissza
-        Set<String> perms = rolePermissions.getOrDefault(role, java.util.Collections.emptySet());
         
-        // 4. Ellenőrzés: van-e "ALL" joga VAGY van-e a konkrét joga
-        //    Az || (OR) operátor azt jelenti: "vagy az egyik vagy a másik igaz"
+        Set<String> perms = rolePermissions.getOrDefault(role, Collections.emptySet());
+        
         return perms.contains(Permissions.ALL) || perms.contains(permission);
     }
 }

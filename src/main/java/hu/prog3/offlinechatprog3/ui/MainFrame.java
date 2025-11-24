@@ -2,6 +2,7 @@ package hu.prog3.offlinechatprog3.ui;
 
 import hu.prog3.offlinechatprog3.controller.AppController;
 import hu.prog3.offlinechatprog3.model.Message;
+import hu.prog3.offlinechatprog3.persistence.DataStore;
 
 import javax.swing.*;
 import java.awt.*;
@@ -270,7 +271,7 @@ public class MainFrame extends JFrame {
     }
 
     private void notifyIncomingRequestsIfNeeded() {
-        java.util.Set<String> incoming = controller.getIncomingFriendRequests(username);
+        java.util.Set<String> incoming = controller.getDataStore().getIncomingFriendRequests(username);
         if (incoming != null && incoming.size() != lastIncomingCount) {
             if (lastIncomingCount != -1 && incoming.size() > lastIncomingCount) {
                 SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(MainFrame.this,
@@ -290,7 +291,7 @@ public class MainFrame extends JFrame {
         if (leftTabs.getSelectedIndex() == 0) {
             String sel = friendsList.getSelectedValue();
             if (sel != null) {
-                java.util.List<Message> msgs = controller.getPrivateMessages(username, sel);
+                java.util.List<Message> msgs = controller.getDataStore().getPrivateMessages(username, sel);
                 if (!sel.equals(lastPreviewFriend) || msgs.size() != lastPreviewCount) {
                     lastPreviewFriend = sel;
                     lastPreviewCount = msgs.size();
@@ -300,7 +301,7 @@ public class MainFrame extends JFrame {
         } else {
             GroupItem gi = groupsList.getSelectedValue();
             if (gi != null) {
-                java.util.List<Message> msgs = controller.getGroupMessages(gi.id);
+                java.util.List<Message> msgs = controller.getDataStore().getGroupMessages(gi.id);
                 if (lastPreviewGroupId == null || !gi.id.equals(lastPreviewGroupId) || msgs.size() != lastPreviewGroupCount) {
                     lastPreviewGroupId = gi.id;
                     lastPreviewGroupCount = msgs.size();
@@ -312,8 +313,9 @@ public class MainFrame extends JFrame {
     }
 
     private void showAddFriendDialog() {
-        java.util.Set<String> all = controller.getAllUsernames();
-        java.util.Set<String> existing = controller.getFriendsOf(username);
+        DataStore store = controller.getDataStore();
+        java.util.Set<String> all = store.getAllUsernames();
+        java.util.Set<String> existing = store.getFriends(username);
         java.util.List<String> choices = new java.util.ArrayList<>();
         for (String u : all) {
             if (!u.equals(username) && !existing.contains(u)) {
@@ -327,7 +329,8 @@ public class MainFrame extends JFrame {
         String selected = (String) JOptionPane.showInputDialog(MainFrame.this, "Válassz felhasználót:", "Barát hozzáadása", JOptionPane.PLAIN_MESSAGE, null, choices.toArray(), choices.get(0));
         if (selected != null) {
             // send a friend request rather than immediately adding
-            boolean ok = controller.sendFriendRequest(username, selected);
+            boolean ok = controller.getDataStore().sendFriendRequest(username, selected);
+            controller.saveStore();
             if (!ok) JOptionPane.showMessageDialog(MainFrame.this, "A kérés elküldése sikertelen vagy már létezik.", "Hiba", JOptionPane.ERROR_MESSAGE);
             else JOptionPane.showMessageDialog(MainFrame.this, "Barátkérés elküldve.", "Siker", JOptionPane.INFORMATION_MESSAGE);
         }
@@ -341,7 +344,8 @@ public class MainFrame extends JFrame {
         }
         int confirm = JOptionPane.showConfirmDialog(MainFrame.this, "Tényleg törölni szeretnéd a barátot?", "Megerősítés", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
-            boolean ok = controller.removeFriend(username, sel);
+            boolean ok = controller.getDataStore().removeFriend(username, sel);
+            controller.saveStore();
             if (!ok) JOptionPane.showMessageDialog(MainFrame.this, "Nem sikerült eltávolítani a barátot.", "Hiba", JOptionPane.ERROR_MESSAGE);
             else refreshFriends();
         }
@@ -383,7 +387,8 @@ public class MainFrame extends JFrame {
     }
 
     private void showIncomingRequests() {
-        java.util.Set<String> incoming = controller.getIncomingFriendRequests(username);
+        DataStore store = controller.getDataStore();
+        java.util.Set<String> incoming = store.getIncomingFriendRequests(username);
         if (incoming.isEmpty()) {
             JOptionPane.showMessageDialog(MainFrame.this, "Nincsenek bejövő kérésed.", "Kérések", JOptionPane.INFORMATION_MESSAGE);
             return;
@@ -409,7 +414,8 @@ public class MainFrame extends JFrame {
         accept.addActionListener(ev -> {
             String sel = reqList.getSelectedValue();
             if (sel == null) return;
-            boolean ok = controller.acceptFriendRequest(username, sel);
+            boolean ok = store.acceptFriendRequest(username, sel);
+            controller.saveStore();
             if (!ok) JOptionPane.showMessageDialog(d, "Elfogadás sikertelen.", "Hiba", JOptionPane.ERROR_MESSAGE);
             else {
                 model.removeElement(sel);
@@ -420,7 +426,8 @@ public class MainFrame extends JFrame {
         reject.addActionListener(ev -> {
             String sel = reqList.getSelectedValue();
             if (sel == null) return;
-            boolean ok = controller.rejectFriendRequest(username, sel);
+            boolean ok = store.rejectFriendRequest(username, sel);
+            controller.saveStore();
             if (!ok) JOptionPane.showMessageDialog(d, "Elutasítás sikertelen.", "Hiba", JOptionPane.ERROR_MESSAGE);
             else model.removeElement(sel);
         });
@@ -429,7 +436,8 @@ public class MainFrame extends JFrame {
     }
 
     private void showOutgoingRequests() {
-        java.util.Set<String> outgoing = controller.getOutgoingFriendRequests(username);
+        DataStore store = controller.getDataStore();
+        java.util.Set<String> outgoing = store.getOutgoingFriendRequests(username);
         if (outgoing.isEmpty()) {
             JOptionPane.showMessageDialog(MainFrame.this, "Nincsenek küldött kéréseid.", "Küldött kérések", JOptionPane.INFORMATION_MESSAGE);
             return;
@@ -452,7 +460,8 @@ public class MainFrame extends JFrame {
         cancel.addActionListener(ev -> {
             String sel = list.getSelectedValue();
             if (sel == null) return;
-            boolean ok = controller.cancelOutgoingFriendRequest(username, sel);
+            boolean ok = store.cancelOutgoingFriendRequest(username, sel);
+            controller.saveStore();
             if (!ok) JOptionPane.showMessageDialog(d, "Visszavonás sikertelen.", "Hiba", JOptionPane.ERROR_MESSAGE);
             else model.removeElement(sel);
         });
@@ -462,20 +471,22 @@ public class MainFrame extends JFrame {
 
     // Load conversation with a friend and show messages in the chat area
     private void loadFriendConversation(String friend) {
-        List<Message> msgs = controller.getPrivateMessages(username, friend);
-        ChatUi.renderMessages(chatArea, msgs, controller::getUsernameForId, "");
+        DataStore store = controller.getDataStore();
+        List<Message> msgs = store.getPrivateMessages(username, friend);
+        ChatUi.renderMessages(chatArea, msgs, store::getUsernameById, "");
     }
 
     // Load conversation with a group and show messages in the chat area
     private void loadGroupConversation(UUID groupId, String groupName) {
-        List<Message> msgs = controller.getGroupMessages(groupId);
-        ChatUi.renderMessages(chatArea, msgs, controller::getUsernameForId, "[" + groupName + "] ");
+        DataStore store = controller.getDataStore();
+        List<Message> msgs = store.getGroupMessages(groupId);
+        ChatUi.renderMessages(chatArea, msgs, store::getUsernameById, "[" + groupName + "] ");
     }
 
     // Refresh the friends list from controller
     private void refreshFriends() {
         // Rebuild model if different; avoid flicker when no change
-        Set<String> friends = controller.getFriendsOf(username);
+        Set<String> friends = controller.getDataStore().getFriends(username);
         if (friends == null) return;
         java.util.List<String> sorted = new java.util.ArrayList<>(friends);
         java.util.Collections.sort(sorted);
@@ -495,7 +506,7 @@ public class MainFrame extends JFrame {
 
     // Refresh the groups list (only those where the user is a member)
     private void refreshGroups() {
-        Map<UUID, String> groups = controller.getAllGroups();
+        Map<UUID, String> groups = controller.getDataStore().getAllGroups();
         if (groups == null) return;
         GroupItem selected = groupsList.getSelectedValue();
         groupsModel.clear();

@@ -22,7 +22,7 @@ public class GroupChatWindow extends BaseChatWindow {
     //üzenetek lekérése
     @Override
     protected List<Message> fetchMessages() {
-        return controller.getGroupMessages(groupId);
+        return controller.getDataStore().getGroupMessages(groupId);
     }
     //küldési jogosultság ellenőrzése
     @Override

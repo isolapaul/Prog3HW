@@ -1,6 +1,5 @@
 package hu.prog3.offlinechatprog3.controller;
 
-import hu.prog3.offlinechatprog3.model.Message;
 import hu.prog3.offlinechatprog3.model.Permissions;
 import hu.prog3.offlinechatprog3.persistence.DataStore;
 import hu.prog3.offlinechatprog3.persistence.FileManager;
@@ -11,14 +10,13 @@ import java.util.function.BooleanSupplier;
 
 public class AppController {
     private static final String DATA_FILE_PATH = "data/offline-chat.dat";
-    
-    //validálási konstansok
+    //korlátozások
     private static final int MIN_USERNAME_LENGTH = 3;
     private static final int MAX_USERNAME_LENGTH = 20;
     private static final int MAX_MESSAGE_LENGTH = 1000;
     private static final int MAX_GROUP_NAME_LENGTH = 30;
 
-    private DataStore store;
+    private final DataStore store;
     private final File dataFile;
 
     public AppController() {
@@ -29,7 +27,12 @@ public class AppController {
         this.store = (loaded != null) ? loaded : new DataStore();
     }
 
-    //helper metódus - művelet végrehajtása és mentés
+    // UI-nak kell a DataStore referencia, hogy közvetlenül hívhassa ahol nincs business logic
+    public DataStore getDataStore() {
+        return store;
+    }
+
+    //segéd metódus - művelet végrehajtása és mentés
     private boolean executeAndSave(BooleanSupplier operation) {
         boolean ok = operation.getAsBoolean();
         if (ok) saveStore();
@@ -92,44 +95,12 @@ public class AppController {
             return false;
         }
     }
-    //barát hozzáadása
-    public boolean addFriend(String me, String friend) {
-        return executeAndSave(() -> store.addFriend(me, friend));
-    }
-    //barátkérelem küldése
-    public boolean sendFriendRequest(String from, String to) {
-        return executeAndSave(() -> store.sendFriendRequest(from, to));
-    }
-    //kimenő barátkérelmek lekérdezése
-    public Set<String> getOutgoingFriendRequests(String username) {
-        return store.getOutgoingFriendRequests(username);
-    }
-    //bejövő barátkérelmek lekérdezése
-    public Set<String> getIncomingFriendRequests(String username) {
-        return store.getIncomingFriendRequests(username);
-    }
-    //barátkérelem elfogadása
-    public boolean acceptFriendRequest(String username, String from) {
-        return executeAndSave(() -> store.acceptFriendRequest(username, from));
-    }
-    //barátkérelem elutasítása
-    public boolean rejectFriendRequest(String username, String from) {
-        return executeAndSave(() -> store.rejectFriendRequest(username, from));
-    }
-    //barátkérelem visszavonása
-    public boolean cancelOutgoingFriendRequest(String from, String to) {
-        return executeAndSave(() -> store.cancelOutgoingFriendRequest(from, to));
-    }
     //Csoport létrehozása
     public UUID createGroup(String name, String creatorUsername) {
         if (!isValidGroupName(name)) return null;
         UUID id = store.createGroup(name, creatorUsername);
         saveStore();
         return id;
-    }
-
-    public java.util.Map<UUID, String> getAllGroups() {
-        return store.getAllGroups();
     }
 
     public Set<String> getGroupMembers(UUID groupId) {
@@ -176,27 +147,6 @@ public class AppController {
         return saveStore();
     }
 
-    //group role/permission helpers
-    public Map<String, String> getGroupMembersWithRoles(UUID groupId) {
-        var group = store.getGroup(groupId);
-        if (group == null) return Collections.emptyMap();
-        
-        Map<String, String> result = new HashMap<>();
-        for (Map.Entry<UUID, String> entry : group.getMemberRoles().entrySet()) {
-            String username = store.getUsernameById(entry.getKey());
-            if (username != null) {
-                result.put(username, entry.getValue());
-            }
-        }
-        return result;
-    }
-
-    public Set<String> getGroupAvailableRoles(UUID groupId) {
-        var group = store.getGroup(groupId);
-        if (group == null) return Collections.emptySet();
-        return new HashSet<>(group.getRoles());
-    }
-
     public boolean setGroupMemberRole(UUID groupId, String username, String role) {
         var group = store.getGroup(groupId);
         var user = store.getUserByName(username);
@@ -207,12 +157,6 @@ public class AppController {
         } catch (IllegalArgumentException e) {
             return false;
         }
-    }
-
-    public Set<String> getRolePermissions(UUID groupId, String role) {
-        var group = store.getGroup(groupId);
-        if (group == null) return Collections.emptySet();
-        return group.getRolePermissions(role);
     }
 
     public boolean setRolePermissions(UUID groupId, String role, Set<String> perms) {
@@ -237,11 +181,7 @@ public class AppController {
         if (user == null) return false;
         store.sendGroupMessage(user.getId(), groupId, content);
         saveStore();
-        return true;
-    }
-
-    public List<Message> getGroupMessages(UUID groupId) {
-        return store.getGroupMessages(groupId);
+        return saveStore();
     }
 
     public boolean deleteGroupMessage(UUID groupId, UUID messageId, String requester) {
@@ -256,10 +196,6 @@ public class AppController {
         return saveStore();
     }
 
-    public boolean removeFriend(String me, String friend) {
-        return executeAndSave(() -> store.removeFriend(me, friend));
-    }
-
     public boolean sendPrivateMessage(String from, String to, String content) {
         if (!isValidMessage(content)) return false;
         if (!store.areFriends(from, to)) return false;
@@ -268,22 +204,5 @@ public class AppController {
         store.sendPrivateMessage(user.getId(), from, to, content);
         saveStore();
         return true;
-    }
-
-    public List<Message> getPrivateMessages(String a, String b) {
-        return store.getPrivateMessages(a, b);
-    }
-
-    public Set<String> getFriendsOf(String username) {
-        return store.getFriends(username);
-    }
-
-    public Set<String> getAllUsernames() {
-        return store.getAllUsernames();
-    }
-    
-    public String getUsernameForId(UUID id) {
-        if (id == null) return null;
-        return store.getUsernameById(id);
     }
 }
