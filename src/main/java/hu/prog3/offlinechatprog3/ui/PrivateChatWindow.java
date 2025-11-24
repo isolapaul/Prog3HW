@@ -29,15 +29,15 @@ public class PrivateChatWindow extends BaseChatWindow {
 
     @Override
     protected boolean sendInternal(String text) {
-        // Controller privát üzenet küldése
+        //privát üzenet küldése a controlleren keresztül
         return controller.sendPrivateMessage(me, other, text);
     }
 
     public void refreshIfVisible() {
-        // Ha az ablak nem látható, ne frissítsünk (optimalizálás)
+        //ha az ablak nem látható, ne frissítsünk
         if (!isVisible()) return;
         
-        // Teljes újratöltés (örökölt metódus a BaseChatWindow-ból)
+        //teljes újratöltés
         reloadMessages();
     }
 }

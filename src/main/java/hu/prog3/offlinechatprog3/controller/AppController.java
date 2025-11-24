@@ -41,12 +41,12 @@ public class AppController {
         }
     }
 
-    // Újratölti a DataStore-t a fájlból CSAK ha más user módosította
+    //datastore újratöltése ha szükséges
     public void reloadStore() {
         if (!dataFile.exists()) return;
         
         long currentFileTime = dataFile.lastModified();
-        // Csak akkor töltsünk újra ha a fájl újabb mint amit mi utoljára láttunk
+        //csak akkor töltünk újra, ha a fájl módosult az utolsó betöltés óta
         if (currentFileTime > lastLoadedTimestamp) {
             DataStore loaded = FileManager.load(dataFile);
             if (loaded != null) {
