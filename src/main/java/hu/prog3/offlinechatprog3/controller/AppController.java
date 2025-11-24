@@ -16,8 +16,9 @@ public class AppController {
     private static final int MAX_MESSAGE_LENGTH = 1000;
     private static final int MAX_GROUP_NAME_LENGTH = 30;
 
-    private final DataStore store;
+    private DataStore store;  // nem final, mert reloadStore() újra kell állítsa
     private final File dataFile;
+    private long lastLoadedTimestamp = 0;  // Utolsó betöltés/mentés időpontja
 
     public AppController() {
         this.dataFile = new File(DATA_FILE_PATH);
@@ -25,11 +26,34 @@ public class AppController {
         
         DataStore loaded = FileManager.load(dataFile);
         this.store = (loaded != null) ? loaded : new DataStore();
+        updateTimestamp();
     }
 
     // UI-nak kell a DataStore referencia, hogy közvetlenül hívhassa ahol nincs business logic
     public DataStore getDataStore() {
         return store;
+    }
+
+    // Frissíti a timestamp-et (mentés vagy betöltés után)
+    private void updateTimestamp() {
+        if (dataFile.exists()) {
+            lastLoadedTimestamp = dataFile.lastModified();
+        }
+    }
+
+    // Újratölti a DataStore-t a fájlból CSAK ha más user módosította
+    public void reloadStore() {
+        if (!dataFile.exists()) return;
+        
+        long currentFileTime = dataFile.lastModified();
+        // Csak akkor töltsünk újra ha a fájl újabb mint amit mi utoljára láttunk
+        if (currentFileTime > lastLoadedTimestamp) {
+            DataStore loaded = FileManager.load(dataFile);
+            if (loaded != null) {
+                this.store = loaded;
+                updateTimestamp();
+            }
+        }
     }
 
     //segéd metódus - művelet végrehajtása és mentés
@@ -63,7 +87,11 @@ public class AppController {
     //adatok mentése
     public boolean saveStore() {
         try {
-            return FileManager.save(store, dataFile);
+            boolean saved = FileManager.save(store, dataFile);
+            if (saved) {
+                updateTimestamp();  //mentés után frissítjük az időbélyeget
+            }
+            return saved;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -85,12 +113,12 @@ public class AppController {
         return created ? RegistrationResult.SUCCESS : RegistrationResult.USERNAME_ALREADY_TAKEN;
     }
 
-    //bejelentkezés ellenőrzése
-    public boolean authenticateUser(String username, String passwordHash) {
+    //felhasználó hitelesítése
+    public boolean authenticateUser(String username, String plainPassword) {
         var user = store.getUserByName(username);
         if (user == null) return false;
         try {
-            return hu.prog3.offlinechatprog3.util.PasswordUtil.checkPassword(passwordHash, user.getPasswordHash());
+            return hu.prog3.offlinechatprog3.util.PasswordUtil.checkPassword(plainPassword, user.getPasswordHash());
         } catch (Exception e) {
             return false;
         }

@@ -256,6 +256,7 @@ public class MainFrame extends JFrame {
 
     private void onTimerTick() {
         try {
+            controller.reloadStore();  // Újratöltjük az adatokat a fájlból (multi-user)
             refreshLists();
             notifyIncomingRequestsIfNeeded();
             refreshOpenPrivateWindows();

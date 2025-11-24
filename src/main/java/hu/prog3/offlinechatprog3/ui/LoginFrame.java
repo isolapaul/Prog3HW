@@ -2,6 +2,7 @@ package hu.prog3.offlinechatprog3.ui;
 
 import hu.prog3.offlinechatprog3.controller.AppController;
 import hu.prog3.offlinechatprog3.util.PasswordUtil;
+import hu.prog3.offlinechatprog3.controller.RegistrationResult;
 
 import javax.swing.*;
 import java.awt.*;
@@ -107,7 +108,7 @@ public class LoginFrame extends JFrame {
             
             //regisztráció végrehajtása a controller segítségével
             String hashedPw = PasswordUtil.hashPassword(pw);
-            hu.prog3.offlinechatprog3.controller.RegistrationResult result = controller.registerUser(user, hashedPw);
+            RegistrationResult result = controller.registerUser(user, hashedPw);
             
             switch (result) {
                 case SUCCESS:
@@ -160,8 +161,8 @@ public class LoginFrame extends JFrame {
                 );
                 return;
             }
-            String hashedPw = PasswordUtil.hashPassword(pw);
-            boolean ok = controller.authenticateUser(user, hashedPw);
+            //hitelesítés a controller segítségével
+            boolean ok = controller.authenticateUser(user, pw);
             //ha sikeres a bejelentkezés
             if (ok) {
                 //mainframe létrehozása a felhasználóval

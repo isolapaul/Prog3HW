@@ -62,7 +62,7 @@ public class DataStore implements Serializable {
         if (areFriends(from, to)) return false;
         Set<String> incoming = incomingFriendRequests.computeIfAbsent(to, k -> new HashSet<>());
         Set<String> outgoing = outgoingFriendRequests.computeIfAbsent(from, k -> new HashSet<>());
-        // if already requested (either direction) don't add
+        
         if (incoming.contains(from) || outgoing.contains(to)) return false;
         incoming.add(from);
         outgoing.add(to);
@@ -83,7 +83,7 @@ public class DataStore implements Serializable {
     public boolean acceptFriendRequest(String username, String from) {
         if (!usersByName.containsKey(username) || !usersByName.containsKey(from)) return false;
         Set<String> incoming = incomingFriendRequests.get(username);
-        if (incoming == null || !incoming.remove(from)) return false;
+        if (incoming == null ) return false;
         // add friendship
         friends.get(username).add(from);
         friends.get(from).add(username);
@@ -134,7 +134,7 @@ public class DataStore implements Serializable {
         Group g = new Group(name);
         groups.put(g.getId(), g);
         
-        // Létrehozó hozzáadása Adminisztrátor szerepkörrel
+        //létrehozó hozzáadása Adminisztrátor szerepkörrel
         User creator = usersByName.get(creatorUsername);
         if (creator != null) {
             g.addMember(creator.getId(), "Adminisztrátor");
@@ -142,8 +142,6 @@ public class DataStore implements Serializable {
         
         return g.getId();
     }
-
-
 
     //privát üzenet kulcs generálása
     private String privateKey(String a, String b) {

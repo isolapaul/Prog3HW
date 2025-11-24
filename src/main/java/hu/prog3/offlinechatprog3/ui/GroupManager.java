@@ -145,12 +145,9 @@ public class GroupManager extends JDialog {
         GroupItem sel = requireSelectedGroup();
         if (sel == null) return;
         UUID id = sel.id;
-        Set<String> members = controller.getGroupMembers(id);
 
         DefaultListModel<String> model = new DefaultListModel<>();
-        for (String m : members) {
-            model.addElement(m);
-        }
+        refreshMemberList(model, id);  // Szerepkörökkel együtt tölti
         JList<String> list = new JList<>(model);
         JPanel p = new JPanel(new BorderLayout());
         p.add(new JScrollPane(list), BorderLayout.CENTER);
@@ -173,7 +170,7 @@ public class GroupManager extends JDialog {
         // Extracted simple handlers to reduce method complexity
         add.addActionListener(ev -> handleAddMember(d, model, id));
         remove.addActionListener(ev -> handleRemoveMember(list, model, id));
-        addRole.addActionListener(ev -> handleAddRole(d, id));
+        addRole.addActionListener(ev -> handleAddRole(d, id, model));
         changeRole.addActionListener(ev -> handleChangeRole(d, list, id));
         d.setVisible(true);
     }
@@ -207,7 +204,7 @@ public class GroupManager extends JDialog {
         else model.removeElement(s);
     }
 
-    private void handleAddRole(JDialog parent, UUID groupId) {
+    private void handleAddRole(JDialog parent, UUID groupId, DefaultListModel<String> memberModel) {
         if (!controller.isGroupAdmin(groupId, username)) {
             JOptionPane.showMessageDialog(parent, "Nincs jogosultságod szerep hozzáadására (Adminisztrátor szükséges).", UiMessages.WARN_TITLE, JOptionPane.WARNING_MESSAGE);
             return;
@@ -223,7 +220,10 @@ public class GroupManager extends JDialog {
         if (!perms.isEmpty()) {
             controller.setRolePermissions(groupId, role, perms);
         }
-        JOptionPane.showMessageDialog(parent, "Szerep hozzáadva.");
+        JOptionPane.showMessageDialog(parent, "Szerep hozzáadva: " + role);
+        
+        // Frissítjük a taglistát hogy az új szerepek láthatóak legyenek
+        refreshMemberList(memberModel, groupId);
     }
 
     private Set<String> promptPermissions(Component parent) {
@@ -261,15 +261,48 @@ public class GroupManager extends JDialog {
         return perms;
     }
 
-    private void handleChangeRole(JDialog parent, JList<String> list, UUID groupId) {
-        String selectedUser = list.getSelectedValue();
-        if (selectedUser == null) return;
+    private void refreshMemberList(DefaultListModel<String> model, UUID groupId) {
+        model.clear();
+        hu.prog3.offlinechatprog3.model.Group group = controller.getDataStore().getGroup(groupId);
+        if (group == null) return;
         
-        String[] availableRoles = {"Adminisztrátor", "Résztvevő"};
-        String newRole = (String) JOptionPane.showInputDialog(parent, "Új szerep:", "Szerep módosítása", JOptionPane.PLAIN_MESSAGE, null, availableRoles, null);
+        for (Map.Entry<UUID, String> entry : group.getMemberRoles().entrySet()) {
+            String memberName = controller.getDataStore().getUsernameById(entry.getKey());
+            String roleName = entry.getValue();
+            if (memberName != null) {
+                model.addElement(memberName + " (" + roleName + ")");
+            }
+        }
+    }
+
+    private void handleChangeRole(JDialog parent, JList<String> list, UUID groupId) {
+        // Jogosultság ellenőrzés - csak Adminisztrátor módosíthat szerepköröket
+        if (!controller.isGroupAdmin(groupId, username)) {
+            JOptionPane.showMessageDialog(parent, "Nincs jogosultságod szerepkör módosításához (Adminisztrátor szükséges).", UiMessages.WARN_TITLE, JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        String selectedEntry = list.getSelectedValue();
+        if (selectedEntry == null) return;
+        
+        // Kivonjuk a felhasználónevet (formátum: "username (szerepkör)")
+        String selectedUser = selectedEntry.contains(" (") ? selectedEntry.substring(0, selectedEntry.indexOf(" (")) : selectedEntry;
+        
+        // Dinamikusan lekérdezzük az elérhető szerepeket a Group-ból
+        hu.prog3.offlinechatprog3.model.Group group = controller.getDataStore().getGroup(groupId);
+        if (group == null) return;
+        Set<String> roles = group.getRoles();
+        String[] availableRoles = roles.toArray(new String[0]);
+        
+        String newRole = (String) JOptionPane.showInputDialog(parent, "Új szerep " + selectedUser + " számára:", "Szerep módosítása", JOptionPane.PLAIN_MESSAGE, null, availableRoles, null);
         if (newRole == null) return;
         boolean ok = controller.setGroupMemberRole(groupId, selectedUser, newRole);
-        if (!ok) JOptionPane.showMessageDialog(parent, "Módosítás sikertelen.", "Hiba", JOptionPane.ERROR_MESSAGE);
+        if (!ok) {
+            JOptionPane.showMessageDialog(parent, "Módosítás sikertelen.", "Hiba", JOptionPane.ERROR_MESSAGE);
+        } else {
+            // Frissítjük a listát hogy lásd az új szerepkört
+            refreshMemberList((DefaultListModel<String>) list.getModel(), groupId);
+        }
     }
 
     private void openSelectedGroupChat() {
