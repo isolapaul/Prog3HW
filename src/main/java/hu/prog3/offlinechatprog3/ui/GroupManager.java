@@ -15,13 +15,16 @@ import java.util.HashSet;
 
 
 /**
- * Simple group manager dialog: list groups, create group, view/add/remove members, add roles.
+ * Csoportkezelő ablak - csoportok listázása, létrehozása, tagok és szerepkörök kezelése.
  */
 public class GroupManager extends JDialog {
 
     private final transient AppController controller;
     private final String username;
 
+    /**
+     * Csoport listában szereplő elem.
+     */
     private static class GroupItem {
         final UUID id;
         final String name;
@@ -30,9 +33,14 @@ public class GroupManager extends JDialog {
     }
     private final DefaultListModel<GroupItem> groupsModel = new DefaultListModel<>();
     private final JList<GroupItem> groupsList = new JList<>(groupsModel);
-    // Titles centralized in UiMessages
     private static final String SELECT_GROUP_MSG = "Válassz egy csoportot.";
 
+    /**
+     * Csoportkezelő ablak konstruktor.
+     * @param owner szülő ablak
+     * @param controller MVC controller
+     * @param username aktuális felhasználó
+     */
     public GroupManager(Frame owner, AppController controller, String username) {
         super(owner, "Csoportok", true);
         this.controller = controller;
@@ -76,6 +84,9 @@ public class GroupManager extends JDialog {
         setContentPane(main);
     }
 
+    /**
+     * Csoport üzeneteinek megjelenítése és törlése.
+     */
     private void showMessagesDialog() {
         GroupItem sel = requireSelectedGroup();
         if (sel == null) return;
@@ -119,6 +130,9 @@ public class GroupManager extends JDialog {
         d.setVisible(true);
     }
 
+    /**
+     * Üzenet listában szereplő elem.
+     */
     private static class MessageItem {
         final UUID id;
         final String display;
@@ -133,6 +147,9 @@ public class GroupManager extends JDialog {
         @Override public String toString() { return display; }
     }
 
+    /**
+     * Csoportok betöltése a listába.
+     */
     private void loadGroups() {
         groupsModel.clear();
         Map<UUID, String> groups = controller.getDataStore().getAllGroups();
@@ -141,6 +158,9 @@ public class GroupManager extends JDialog {
         }
     }
 
+    /**
+     * Csoport tagok megjelenítése és kezelése.
+     */
     private void showMembersDialog() {
         GroupItem sel = requireSelectedGroup();
         if (sel == null) return;
@@ -175,6 +195,12 @@ public class GroupManager extends JDialog {
         d.setVisible(true);
     }
 
+    /**
+     * Tag hozzáadása a csoporthoz.
+     * @param parent szülő ablak
+     * @param model taglista modell
+     * @param groupId csoport UUID
+     */
     private void handleAddMember(JDialog parent, DefaultListModel<String> model, UUID groupId) {
         if (!controller.hasGroupPermission(groupId, username, Permissions.GROUP_ADD_MEMBER)) {
             JOptionPane.showMessageDialog(parent, UiMessages.NO_PERM_ADD, UiMessages.WARN_TITLE, JOptionPane.WARNING_MESSAGE);
@@ -191,6 +217,12 @@ public class GroupManager extends JDialog {
         }
     }
 
+    /**
+     * Tag eltávolítása a csoportból.
+     * @param list taglista UI
+     * @param model taglista modell
+     * @param groupId csoport UUID
+     */
     private void handleRemoveMember(JList<String> list, DefaultListModel<String> model, UUID groupId) {
         if (!controller.hasGroupPermission(groupId, username, hu.prog3.offlinechatprog3.model.Permissions.GROUP_REMOVE_MEMBER)) {
             JOptionPane.showMessageDialog(this, UiMessages.NO_PERM_REMOVE, UiMessages.WARN_TITLE, JOptionPane.WARNING_MESSAGE);
@@ -204,6 +236,12 @@ public class GroupManager extends JDialog {
         else model.removeElement(s);
     }
 
+    /**
+     * Egyéni szerep hozzáadása a csoporthoz.
+     * @param parent szülő ablak
+     * @param groupId csoport UUID
+     * @param memberModel taglista modell
+     */
     private void handleAddRole(JDialog parent, UUID groupId, DefaultListModel<String> memberModel) {
         if (!controller.isGroupAdmin(groupId, username)) {
             JOptionPane.showMessageDialog(parent, "Nincs jogosultságod szerep hozzáadására (Adminisztrátor szükséges).", UiMessages.WARN_TITLE, JOptionPane.WARNING_MESSAGE);
@@ -226,6 +264,11 @@ public class GroupManager extends JDialog {
         refreshMemberList(memberModel, groupId);
     }
 
+    /**
+     * Jogosultságok kiválasztása dialógusban.
+     * @param parent szülő komponens
+     * @return kiválasztott jogosultságok halmaza
+     */
     private Set<String> promptPermissions(Component parent) {
         JPanel panel = new JPanel(new GridLayout(0,1));
         JCheckBox addMember = new JCheckBox("Tag hozzáadása", true);
@@ -261,6 +304,11 @@ public class GroupManager extends JDialog {
         return perms;
     }
 
+    /**
+     * Taglista frissítése szerepkörökkel.
+     * @param model taglista modell
+     * @param groupId csoport UUID
+     */
     private void refreshMemberList(DefaultListModel<String> model, UUID groupId) {
         model.clear();
         hu.prog3.offlinechatprog3.model.Group group = controller.getDataStore().getGroup(groupId);
@@ -275,6 +323,12 @@ public class GroupManager extends JDialog {
         }
     }
 
+    /**
+     * Tag szerepkörének módosítása.
+     * @param parent szülő ablak
+     * @param list taglista UI
+     * @param groupId csoport UUID
+     */
     private void handleChangeRole(JDialog parent, JList<String> list, UUID groupId) {
         // Jogosultság ellenőrzés - csak Adminisztrátor módosíthat szerepköröket
         if (!controller.isGroupAdmin(groupId, username)) {
@@ -305,6 +359,9 @@ public class GroupManager extends JDialog {
         }
     }
 
+    /**
+     * Kiválasztott csoport chat ablakának megnyitása.
+     */
     private void openSelectedGroupChat() {
         GroupItem sel = requireSelectedGroup();
         if (sel == null) return;
@@ -313,6 +370,9 @@ public class GroupManager extends JDialog {
         win.setVisible(true);
     }
 
+    /**
+     * Kiválasztott csoport törlése.
+     */
     private void deleteSelectedGroup() {
         GroupItem sel = requireSelectedGroup();
         if (sel == null) return;
@@ -326,7 +386,10 @@ public class GroupManager extends JDialog {
         }
     }
 
-    // Small helper to reduce duplication: require a selected group or warn and return null
+    /**
+     * Kiválasztott csoport lekérdezése vagy figyelmeztetés megjelenítése.
+     * @return kiválasztott GroupItem vagy null
+     */
     private GroupItem requireSelectedGroup() {
         GroupItem sel = groupsList.getSelectedValue();
         if (sel == null) {
