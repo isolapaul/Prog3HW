@@ -1,321 +1,152 @@
 @startuml Offline Chat - Osztálydiagram
 
-' ===== STYLE =====
 skinparam classAttributeIconSize 0
 skinparam packageStyle rectangle
+skinparam linetype ortho
 
-' ===== MODEL PACKAGE =====
-package "hu.prog3.offlinechatprog3.model" {
-    class User {
-        - serialVersionUID: long
-        - id: UUID
-        - username: String
-        - passwordHash: String
-        + User(username: String, passwordHash: String)
-        + getId(): UUID
-        + getUsername(): String
-        + getPasswordHash(): String
-    }
-    
-    class Message {
-        - serialVersionUID: long
-        - id: UUID
-        - senderId: UUID
-        - conversationId: UUID
-        - content: String
-        - timestamp: Instant
-        + Message(senderId: UUID, conversationId: UUID, content: String)
-        + getId(): UUID
-        + getSenderId(): UUID
-        + getConversationId(): UUID
-        + getContent(): String
-        + getTimestamp(): Instant
-        + equals(o: Object): boolean
-        + hashCode(): int
-    }
-    
-    class Group {
-        - serialVersionUID: long
-        - id: UUID
-        - name: String
-        - memberRoles: Map<UUID, String>
-        - roles: Set<String>
-        - rolePermissions: Map<String, Set<String>>
-        + Group(name: String)
-        + getId(): UUID
-        + getName(): String
-        + setName(name: String): void
-        + getMemberRoles(): Map<UUID, String>
-        + getRoles(): Set<String>
-        + addRole(role: String): void
-        + setRolePermissions(role: String, perms: Set<String>): void
-        + getRolePermissions(role: String): Set<String>
-        + addMember(userId: UUID, role: String): void
-        + removeMember(userId: UUID): void
-        + setMemberRole(userId: UUID, role: String): void
-        + isAdmin(userId: UUID): boolean
-        + hasPermission(userId: UUID, permission: String): boolean
-    }
-    
-    class Permissions {
-        + {static} ALL: String
-        + {static} GROUP_SEND_MESSAGE: String
-        + {static} GROUP_DELETE_MESSAGES: String
-        + {static} GROUP_ADD_MEMBER: String
-        + {static} GROUP_REMOVE_MEMBER: String
-        + {static} GROUP_DELETE_GROUP: String
-        + {static} GROUP_READ: String
-    }
+' ===== MAIN =====
+class Main {
+    + {static} main(args): void
 }
 
-' ===== PERSISTENCE PACKAGE =====
-package "hu.prog3.offlinechatprog3.persistence" {
-    class DataStore {
-        - serialVersionUID: long
-        - usersByName: Map<String, User>
-        - usersById: Map<UUID, User>
-        - friends: Map<String, Set<String>>
-        - incomingFriendRequests: Map<String, Set<String>>
-        - outgoingFriendRequests: Map<String, Set<String>>
-        - groups: Map<UUID, Group>
-        - privateMessages: Map<String, List<Message>>
-        - groupMessages: Map<UUID, List<Message>>
-        + DataStore()
-        + registerUser(username: String, passwordHash: String): boolean
-        + getUserByName(username: String): User
-        + getGroup(groupId: UUID): Group
-        + sendFriendRequest(from: String, to: String): boolean
-        + getIncomingFriendRequests(username: String): Set<String>
-        + getOutgoingFriendRequests(username: String): Set<String>
-        + acceptFriendRequest(username: String, from: String): boolean
-        + rejectFriendRequest(username: String, from: String): boolean
-        + cancelOutgoingFriendRequest(from: String, to: String): boolean
-        + removeFriend(a: String, b: String): boolean
-        + areFriends(a: String, b: String): boolean
-        + createGroup(name: String, creatorUsername: String): UUID
-        + sendPrivateMessage(senderId: UUID, username1: String, username2: String, content: String): void
-        + getPrivateMessages(a: String, b: String): List<Message>
-        + sendGroupMessage(senderId: UUID, groupId: UUID, content: String): void
-        + getGroupMessages(groupId: UUID): List<Message>
-        + deleteGroupMessage(groupId: UUID, messageId: UUID): void
-        + deleteGroup(groupId: UUID): void
-        + getAllGroups(): Map<UUID, String>
-        + getFriends(username: String): Set<String>
-        + getUsernameById(id: UUID): String
-        + getAllUsernames(): Set<String>
-        - privateKey(a: String, b: String): String
-    }
-    
-    class FileManager {
-        + {static} save(store: DataStore, file: File): boolean
-        + {static} load(file: File): DataStore
-    }
-}
-
-' ===== CONTROLLER PACKAGE =====
-package "hu.prog3.offlinechatprog3.controller" {
+' ===== CONTROLLER =====
+package "controller" {
     class AppController {
-        - DATA_FILE_PATH: String
-        - MIN_USERNAME_LENGTH: int
-        - MAX_USERNAME_LENGTH: int
-        - MAX_MESSAGE_LENGTH: int
-        - MAX_GROUP_NAME_LENGTH: int
         - store: DataStore
-        - dataFile: File
-        - lastLoadedTimestamp: long
-        + AppController()
-        + getDataStore(): DataStore
-        + reloadStore(): void
-        + saveStore(): boolean
-        + registerUser(username: String, passwordHash: String): RegistrationResult
-        + authenticateUser(username: String, plainPassword: boolean
-        + createGroup(name: String, creatorUsername: String): UUID
-        + getGroupMembers(groupId: UUID): Set<String>
-        + addGroupMember(groupId: UUID, username: String, role: String): boolean
-        + isGroupAdmin(groupId: UUID, username: String): boolean
-        + removeGroupMember(groupId: UUID, username: String): boolean
-        + addCustomRole(groupId: UUID, role: String): boolean
-        + setGroupMemberRole(groupId: UUID, username: String, role: String): boolean
-        + setRolePermissions(groupId: UUID, role: String, perms: Set<String>): boolean
-        + hasGroupPermission(groupId: UUID, username: String, permission: String): boolean
-        + sendGroupMessage(groupId: UUID, from: String, content: String): boolean
-        + deleteGroupMessage(groupId: UUID, messageId: UUID, requester: String): boolean
-        + deleteGroup(groupId: UUID, requester: String): boolean
-        + sendPrivateMessage(from: String, to: String, content: String): boolean
-        - updateTimestamp(): void
-        - executeAndSave(operation: BooleanSupplier): boolean
-        - isValidMessage(content: String): boolean
-        - isValidGroupName(name: String): boolean
-        - checkPermission(groupId: UUID, username: String, permission: String): boolean
+        + registerUser(): RegistrationResult
+        + authenticateUser(): boolean
+        ...
     }
     
     enum RegistrationResult {
         SUCCESS
         USERNAME_TOO_SHORT
-        USERNAME_TOO_LONG
-        USERNAME_ALREADY_TAKEN
-    }
-}
-
-' ===== UI PACKAGE =====
-package "hu.prog3.offlinechatprog3.ui" {
-    class LoginFrame {
-        - controller: AppController
-        - usernameField: JTextField
-        - passwordField: JPasswordField
-        + LoginFrame(controller: AppController)
-        - initComponents(): void
-        - onLogin(): void
-        - onRegister(): void
-    }
-    
-    class MainFrame {
-        - controller: AppController
-        - username: String
-        - friendsModel: DefaultListModel<String>
-        - friendsList: JList<String>
-        - groupsModel: DefaultListModel<GroupItem>
-        - groupsList: JList<GroupItem>
-        - leftTabs: JTabbedPane
-        - chatArea: JTextArea
-        - inputField: JTextField
-        - sendButton: JButton
-        - openChats: Map<String, PrivateChatWindow>
-        - lastIncomingCount: int
-        + MainFrame(controller: AppController, username: String)
-        - initMenu(): void
-        - initComponents(): void
-        - bindEvents(): void
-        - startLiveRefresh(): void
-        - onTimerTick(): void
-        - refreshFriends(): void
-        - refreshGroups(): void
-        - showAddFriendDialog(): void
-        - removeSelectedFriend(): void
-        - openPrivateChat(friend: String): void
-        - showIncomingRequests(): void
-        - showOutgoingRequests(): void
-    }
-    
-    abstract class BaseChatWindow {
-        # controller: AppController
-        # me: String
-        # chatArea: JTextArea
-        # inputField: JTextField
-        # sendButton: JButton
-        - liveTimer: Timer
-        - lastCount: int
-        # BaseChatWindow(controller: AppController, me: String, title: String)
-        - initComponents(): void
-        - bindEvents(): void
-        - sendMessage(): void
-        # reloadMessages(): void
-        - startLive(): void
-        - applySendPermission(): void
-        # resolveUser(id: UUID): String
-        # {abstract} fetchMessages(): List<Message>
-        # {abstract} canSendNow(): boolean
-        # {abstract} sendInternal(text: String): boolean
-    }
-    
-    class PrivateChatWindow {
-        - other: String
-        + PrivateChatWindow(controller: AppController, me: String, other: String)
-        # fetchMessages(): List<Message>
-        # canSendNow(): boolean
-        # sendInternal(text: String): boolean
-        + refreshIfVisible(): void
-    }
-    
-    class GroupChatWindow {
-        - groupId: UUID
-        + GroupChatWindow(controller: AppController, groupId: UUID, me: String, title: String)
-        # fetchMessages(): List<Message>
-        # canSendNow(): boolean
-        # sendInternal(text: String): boolean
-    }
-    
-    class GroupManager {
-        - controller: AppController
-        - username: String
-        - groupsModel: DefaultListModel<GroupItem>
-        - groupsList: JList<GroupItem>
-        + GroupManager(owner: Frame, controller: AppController, username: String)
-        - initComponents(): void
-        - loadGroups(): void
-        - showMembersDialog(): void
-        - showMessagesDialog(): void
-        - openSelectedGroupChat(): void
-        - deleteSelectedGroup(): void
-    }
-    
-    class ChatUi {
-        + {static} renderMessages(area: JTextArea, msgs: List<Message>, resolver: Function, prefix: String): void
-        + {static} renderMessagesWithTime(area: JTextArea, msgs: List<Message>, resolver: Function, currentUser: String, prefix: String): void
-    }
-    
-    class UiMessages {
-        + {static} ERR_TITLE: String
-        + {static} WARN_TITLE: String
-        + {static} SELECT_FRIEND: String
-        + {static} SELECT_GROUP: String
-        + {static} NO_PERM_SEND_GROUP: String
-        + {static} SEND_FAILED: String
         ...
     }
 }
 
-' ===== UTIL PACKAGE =====
-package "hu.prog3.offlinechatprog3.util" {
-    class PasswordUtil {
-        + {static} hashPassword(plainPassword: String): String
-        + {static} checkPassword(plainPassword: String, hashedPassword: String): boolean
+' ===== MODEL =====
+package "model" {
+    class User {
+        - id: UUID
+        + getUsername(): String
+        ...
+    }
+    
+    class Message {
+        - senderId: UUID
+        + getContent(): String
+        ...
+    }
+    
+    class Group {
+        - memberRoles: Map
+        + addMember(): void
+        + hasPermission(): boolean
+        ...
+    }
+    
+    class Permissions {
+        + {static} ALL: String
+        + {static} GROUP_SEND_MESSAGE: String
+        ...
     }
 }
 
-' ===== MAIN =====
-package "hu.prog3.offlinechatprog3" {
-    class Main {
-        + {static} main(args: String[]): void
+' ===== PERSISTENCE =====
+package "persistence" {
+    class DataStore {
+        - usersByName: Map
+        + registerUser(): boolean
+        + createGroup(): UUID
+        ...
+    }
+    
+    class FileManager {
+        + {static} save(): boolean
+        + {static} load(): DataStore
+    }
+}
+
+' ===== UI =====
+package "ui" {
+    class LoginFrame {
+        - controller: AppController
+        - onLogin(): void
+        ...
+    }
+    
+    class MainFrame {
+        - username: String
+        - refreshFriends(): void
+        ...
+    }
+    
+    abstract class BaseChatWindow {
+        # controller: AppController
+        # {abstract} fetchMessages(): List
+        ...
+    }
+    
+    class PrivateChatWindow {
+        - other: String
+        + refreshIfVisible(): void
+        ...
+    }
+    
+    class GroupChatWindow {
+        - groupId: UUID
+        # canSendNow(): boolean
+        ...
+    }
+    
+    class GroupManager {
+        - controller: AppController
+        - loadGroups(): void
+        ...
+    }
+}
+
+package "util" {
+    class PasswordUtil {
+        + {static} hashPassword(): String
+        + {static} checkPassword(): boolean
     }
 }
 
 ' ===== RELATIONSHIPS =====
 
-' Model relationships
-Group "1" *-- "0..*" Message : contains >
-User "1" -- "0..*" Message : sends >
+' Main -> Controller
+Main ..> AppController : creates
+Main ..> LoginFrame : creates
+
+' Controller -> Model & Persistence
+AppController --> DataStore : uses
+AppController ..> RegistrationResult : returns
+AppController ..> FileManager : saves/loads
+
+' Persistence -> Model
+DataStore *-- User
+DataStore *-- Group
+DataStore *-- Message
+FileManager ..> DataStore : serializes
+
+' Model
 Group ..> Permissions : uses
 
-' Persistence relationships
-DataStore "1" *-- "0..*" User : manages >
-DataStore "1" *-- "0..*" Group : manages >
-DataStore "1" *-- "0..*" Message : stores >
-FileManager ..> DataStore : serializes >
-
-' Controller relationships
-AppController "1" --> "1" DataStore : uses >
-AppController ..> FileManager : uses >
-AppController ..> RegistrationResult : returns >
+' UI -> Controller
+LoginFrame --> AppController
+MainFrame --> AppController
+BaseChatWindow --> AppController
+GroupManager --> AppController
 
 ' UI relationships
-LoginFrame --> AppController : uses >
-MainFrame --> AppController : uses >
-MainFrame "1" *-- "0..*" PrivateChatWindow : creates >
-BaseChatWindow --> AppController : uses >
-BaseChatWindow ..> ChatUi : uses >
-BaseChatWindow ..> UiMessages : uses >
-PrivateChatWindow --|> BaseChatWindow : extends
-GroupChatWindow --|> BaseChatWindow : extends
-GroupManager --> AppController : uses >
-MainFrame ..> GroupManager : creates >
+MainFrame ..> GroupManager : opens
+PrivateChatWindow --|> BaseChatWindow
+GroupChatWindow --|> BaseChatWindow
 
-' Main relationships
-Main ..> LoginFrame : creates >
-Main ..> AppController : creates >
-
-' Util relationships
-LoginFrame ..> PasswordUtil : uses >
-AppController ..> PasswordUtil : uses >
+' Util
+LoginFrame ..> PasswordUtil
+AppController ..> PasswordUtil
 
 @enduml
