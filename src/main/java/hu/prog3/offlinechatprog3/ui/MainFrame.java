@@ -17,15 +17,14 @@ import java.util.HashMap;
 import java.awt.event.*;
 import java.util.Comparator;
 
-
-
+/**
+ * Főablak - barátok és csoportok kezelése két fülre bontva.
+ */
 public class MainFrame extends JFrame {
 
-    //controller és felhasználónév
     private final transient AppController controller;
     private final String username;
 
-    //UI komponensek - barátok listája
     private final DefaultListModel<String> friendsModel = new DefaultListModel<>();
     private final JList<String> friendsList = new JList<>(friendsModel);
 

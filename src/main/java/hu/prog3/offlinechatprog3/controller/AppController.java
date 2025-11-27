@@ -8,18 +8,23 @@ import java.io.File;
 import java.util.*;
 import java.util.function.BooleanSupplier;
 
+/**
+ * MVC Controller réteg - üzleti logika és adatkezelés koordinálása.
+ */
 public class AppController {
     private static final String DATA_FILE_PATH = "data/offline-chat.dat";
-    //korlátozások
     private static final int MIN_USERNAME_LENGTH = 3;
     private static final int MAX_USERNAME_LENGTH = 20;
     private static final int MAX_MESSAGE_LENGTH = 1000;
     private static final int MAX_GROUP_NAME_LENGTH = 30;
 
-    private DataStore store;  // nem final, mert reloadStore() újra kell állítsa
+    private DataStore store;
     private final File dataFile;
-    private long lastLoadedTimestamp = 0;  // Utolsó betöltés/mentés időpontja
+    private long lastLoadedTimestamp = 0;
 
+    /**
+     * Controller inicializálása - adatok betöltése vagy új DataStore létrehozása.
+     */
     public AppController() {
         this.dataFile = new File(DATA_FILE_PATH);
         this.dataFile.getParentFile().mkdirs();
@@ -30,18 +35,23 @@ public class AppController {
     }
 
     
+    /**
+     * Adattár elérése.
+     * @return DataStore instance
+     */
     public DataStore getDataStore() {
         return store;
     }
 
-    //timestamp frissítése
     private void updateTimestamp() {
         if (dataFile.exists()) {
             lastLoadedTimestamp = dataFile.lastModified();
         }
     }
 
-    //datastore újratöltése ha szükséges
+    /**
+     * Adattár újratöltése fájlból, ha módosult.
+     */
     public void reloadStore() {
         if (!dataFile.exists()) return;
         
@@ -84,12 +94,15 @@ public class AppController {
         return group.hasPermission(user.getId(), permission);
     }
 
-    //adatok mentése
+    /**
+     * Adatok mentése fájlba.
+     * @return true ha sikeres
+     */
     public boolean saveStore() {
         try {
             boolean saved = FileManager.save(store, dataFile);
             if (saved) {
-                updateTimestamp();  //mentés után frissítjük az időbélyeget
+                updateTimestamp();
             }
             return saved;
         } catch (Exception e) {
@@ -97,7 +110,13 @@ public class AppController {
             return false;
         }
     }
-    //felhasználó regisztrációja
+    
+    /**
+     * Új felhasználó regisztrálása.
+     * @param username felhasználónév
+     * @param passwordHash bcrypt hash
+     * @return regisztráció eredménye
+     */
     public RegistrationResult registerUser(String username, String passwordHash) {
         if (username == null || username.isBlank()) {
             return RegistrationResult.USERNAME_TOO_SHORT;
@@ -113,7 +132,12 @@ public class AppController {
         return created ? RegistrationResult.SUCCESS : RegistrationResult.USERNAME_ALREADY_TAKEN;
     }
 
-    //felhasználó hitelesítése
+    /**
+     * Felhasználó hitelesítése.
+     * @param username felhasználónév
+     * @param plainPassword jelszó
+     * @return true ha sikeres
+     */
     public boolean authenticateUser(String username, String plainPassword) {
         var user = store.getUserByName(username);
         if (user == null) return false;
@@ -123,7 +147,13 @@ public class AppController {
             return false;
         }
     }
-    //Csoport létrehozása
+    
+    /**
+     * Csoport létrehozása.
+     * @param name csoport neve
+     * @param creatorUsername létrehozó
+     * @return csoport UUID vagy null
+     */
     public UUID createGroup(String name, String creatorUsername) {
         if (!isValidGroupName(name)) return null;
         UUID id = store.createGroup(name, creatorUsername);
@@ -131,6 +161,11 @@ public class AppController {
         return id;
     }
 
+    /**
+     * Csoport tagjainak lekérdezése.
+     * @param groupId csoport UUID
+     * @return felhasználónevek halmaza
+     */
     public Set<String> getGroupMembers(UUID groupId) {
         var group = store.getGroup(groupId);
         if (group == null) return Collections.emptySet();
@@ -145,6 +180,13 @@ public class AppController {
         return usernames;
     }
 
+    /**
+     * Tag hozzáadása csoporthoz.
+     * @param groupId csoport UUID
+     * @param username felhasználónév
+     * @param role szerep
+     * @return true ha sikeres
+     */
     public boolean addGroupMember(UUID groupId, String username, String role) {
         var group = store.getGroup(groupId);
         var user = store.getUserByName(username);
@@ -153,6 +195,12 @@ public class AppController {
         return saveStore();
     }
 
+    /**
+     * Ellenőrzi, hogy a felhasználó admin-e.
+     * @param groupId csoport UUID
+     * @param username felhasználónév
+     * @return true ha admin
+     */
     public boolean isGroupAdmin(UUID groupId, String username) {
         var group = store.getGroup(groupId);
         var user = store.getUserByName(username);
@@ -160,6 +208,12 @@ public class AppController {
         return group.isAdmin(user.getId());
     }
 
+    /**
+     * Tag eltávolítása csoportból.
+     * @param groupId csoport UUID
+     * @param username felhasználónév
+     * @return true ha sikeres
+     */
     public boolean removeGroupMember(UUID groupId, String username) {
         var group = store.getGroup(groupId);
         var user = store.getUserByName(username);
@@ -168,6 +222,12 @@ public class AppController {
         return saveStore();
     }
 
+    /**
+     * Egyéni szerep hozzáadása.
+     * @param groupId csoport UUID
+     * @param role szerep neve
+     * @return true ha sikeres
+     */
     public boolean addCustomRole(UUID groupId, String role) {
         var group = store.getGroup(groupId);
         if (group == null) return false;
@@ -175,6 +235,13 @@ public class AppController {
         return saveStore();
     }
 
+    /**
+     * Tag szerepének megváltoztatása.
+     * @param groupId csoport UUID
+     * @param username felhasználónév
+     * @param role új szerep
+     * @return true ha sikeres
+     */
     public boolean setGroupMemberRole(UUID groupId, String username, String role) {
         var group = store.getGroup(groupId);
         var user = store.getUserByName(username);
@@ -187,6 +254,13 @@ public class AppController {
         }
     }
 
+    /**
+     * Szerep jogosultságainak beállítása.
+     * @param groupId csoport UUID
+     * @param role szerep neve
+     * @param perms jogosultságok
+     * @return true ha sikeres
+     */
     public boolean setRolePermissions(UUID groupId, String role, Set<String> perms) {
         var group = store.getGroup(groupId);
         if (group == null) return false;
@@ -198,10 +272,24 @@ public class AppController {
         }
     }
 
+    /**
+     * Jogosultság ellenőrzése csoportban.
+     * @param groupId csoport UUID
+     * @param username felhasználónév
+     * @param permission jogosultság
+     * @return true ha van jogosultsága
+     */
     public boolean hasGroupPermission(UUID groupId, String username, String permission) {
         return checkPermission(groupId, username, permission);
     }
 
+    /**
+     * Üzenet küldése csoportba.
+     * @param groupId csoport UUID
+     * @param from küldő
+     * @param content tartalom
+     * @return true ha sikeres
+     */
     public boolean sendGroupMessage(UUID groupId, String from, String content) {
         if (!isValidMessage(content)) return false;
         if (!checkPermission(groupId, from, Permissions.GROUP_SEND_MESSAGE)) return false;
@@ -211,18 +299,38 @@ public class AppController {
         return saveStore();
     }
 
+    /**
+     * Csoport üzenet törlése.
+     * @param groupId csoport UUID
+     * @param messageId üzenet UUID
+     * @param requester kérelmő
+     * @return true ha sikeres
+     */
     public boolean deleteGroupMessage(UUID groupId, UUID messageId, String requester) {
         if (!checkPermission(groupId, requester, Permissions.GROUP_DELETE_MESSAGES)) return false;
         store.deleteGroupMessage(groupId, messageId);
         return saveStore();
     }
 
+    /**
+     * Csoport törlése.
+     * @param groupId csoport UUID
+     * @param requester kérelmő
+     * @return true ha sikeres
+     */
     public boolean deleteGroup(UUID groupId, String requester) {
         if (!checkPermission(groupId, requester, Permissions.GROUP_DELETE_GROUP)) return false;
         store.deleteGroup(groupId);
         return saveStore();
     }
 
+    /**
+     * Privát üzenet küldése.
+     * @param from küldő
+     * @param to címzett
+     * @param content tartalom
+     * @return true ha sikeres
+     */
     public boolean sendPrivateMessage(String from, String to, String content) {
         if (!isValidMessage(content)) return false;
         if (!store.areFriends(from, to)) return false;

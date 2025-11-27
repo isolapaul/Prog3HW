@@ -5,8 +5,18 @@ import hu.prog3.offlinechatprog3.model.Message;
 
 import java.util.List;
 
+/**
+ * Privát chat ablak két felhasználó között.
+ */
 public class PrivateChatWindow extends BaseChatWindow {
     private final String other;
+    
+    /**
+     * Privát chat ablak konstruktor.
+     * @param controller MVC controller
+     * @param me aktuális felhasználó
+     * @param other másik felhasználó
+     */
     public PrivateChatWindow(AppController controller, String me, String other) {
         super(controller, me, "Chat: " + me + " <--> " + other);
     
@@ -26,10 +36,12 @@ public class PrivateChatWindow extends BaseChatWindow {
 
     @Override
     protected boolean sendInternal(String text) {
-        //privát üzenet küldése a controlleren keresztül
         return controller.sendPrivateMessage(me, other, text);
     }
 
+    /**
+     * Frissítés, ha az ablak látható.
+     */
     public void refreshIfVisible() {
         //ha az ablak nem látható, ne frissítsünk
         if (!isVisible()) return;

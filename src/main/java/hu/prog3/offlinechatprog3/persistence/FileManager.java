@@ -2,12 +2,19 @@ package hu.prog3.offlinechatprog3.persistence;
 
 import java.io.*;
 
-//statikus fájl kezelő osztály
+/**
+ * Fájlkezelő osztály DataStore szerializációhoz.
+ */
 public class FileManager {
 
     private FileManager() { }
 
-    //adatok mentése
+    /**
+     * DataStore mentése fájlba.
+     * @param store mentendő adattár
+     * @param file célfájl
+     * @return true ha sikeres
+     */
     public static boolean save(DataStore store, File file) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
             oos.writeObject(store);
@@ -18,7 +25,11 @@ public class FileManager {
         }
     }
 
-    //adatok betöltése
+    /**
+     * DataStore betöltése fájlból.
+     * @param file forrásfájl
+     * @return betöltött DataStore vagy null
+     */
     public static DataStore load(File file) {
         if (!file.exists()) return null;
         

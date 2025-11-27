@@ -8,22 +8,25 @@ import java.awt.*;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Absztrakt chat ablak osztály - Template Method pattern.
+ * Privát és csoport chat ablakok közös logikája.
+ */
 public abstract class BaseChatWindow extends JFrame {
-    //controller
     protected final transient AppController controller;
-    //saját felhasználó
     protected final String me;
-    //chat terület
     protected final JTextArea chatArea = new JTextArea(20, 50);
-    //beviteli mező
     protected final JTextField inputField = new JTextField(36);
-    //küldés gomb
     protected final JButton sendButton = new JButton("Küldés");
-    //élő frissítés timer
     private Timer liveTimer;
-    //utolsó üzenetszám
     private int lastCount = -1;
-    //konstruktor
+    
+    /**
+     * Chat ablak konstruktor.
+     * @param controller MVC controller
+     * @param me aktuális felhasználó
+     * @param title ablak címe
+     */
     protected BaseChatWindow(AppController controller, String me, String title) {
         //cím beállítása
         super(title);

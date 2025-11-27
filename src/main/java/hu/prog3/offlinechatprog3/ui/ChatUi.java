@@ -9,11 +9,20 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
-//statikus metódusokat tartalmazó osztály
+/**
+ * Chat renderelő utility osztály.
+ */
 public final class ChatUi {
    
     private ChatUi() {}
-    //üzenetek megjelenítése
+    
+    /**
+     * Üzenetek megjelenítése a chat területen.
+     * @param chatArea szövegterület
+     * @param msgs üzenetek
+     * @param usernameResolver UUID → felhasználónév függvény
+     * @param prefixOrNull opcionális prefix
+     */
     public static void renderMessages(JTextArea chatArea,List<Message> msgs,Function<UUID, String> usernameResolver,String prefixOrNull) {
         //chat terület törlése
         chatArea.setText("");
@@ -25,10 +34,17 @@ public final class ChatUi {
             chatArea.append(String.format("%s%s: %s%n", prefix, who, m.getContent()));
         }
         
-        //görgetés az aljára
         chatArea.setCaretPosition(chatArea.getDocument().getLength());
     }
-    //üzenetek megjelenítése időbélyeggel
+    
+    /**
+     * Üzenetek megjelenítése időbélyeggel.
+     * @param chatArea szövegterület
+     * @param msgs üzenetek
+     * @param usernameResolver UUID → felhasználónév függvény
+     * @param me aktuális felhasználó
+     * @param prefixOrNull opcionális prefix
+     */
     public static void renderMessagesWithTime(JTextArea chatArea,List<Message> msgs,Function<UUID, String> usernameResolver,String me,String prefixOrNull) {
         chatArea.setText("");
         //dátum formázó létrehozása

@@ -7,18 +7,21 @@ import hu.prog3.offlinechatprog3.controller.RegistrationResult;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Bejelentkezési ablak - regisztráció és bejelentkezés.
+ */
 public class LoginFrame extends JFrame {
 
     private final transient AppController controller;
-    //felhasználónév mező
     private final JTextField usernameField = new JTextField(20);
-    //jelszó mező
     private final JPasswordField passwordField = new JPasswordField(20);
-    //bejelentkezés gomb
     private final JButton loginButton = new JButton("Bejelentkezés");
-    //regisztrációs gomb
     private final JButton registerButton = new JButton("Regisztráció");
-    //bejelentkezési ablak
+    
+    /**
+     * Bejelentkezési ablak konstruktor.
+     * @param controller MVC controller
+     */
     public LoginFrame(AppController controller) {
         //fejléc beállítása
         super("Offline Chat - Bejelentkezés");
