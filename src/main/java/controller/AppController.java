@@ -1,15 +1,15 @@
-package hu.prog3.offlinechatprog3.controller;
+package controller;
 
-import hu.prog3.offlinechatprog3.model.Permissions;
-import hu.prog3.offlinechatprog3.persistence.DataStore;
-import hu.prog3.offlinechatprog3.persistence.FileManager;
+import model.Permissions;
+import persistence.DataStore;
+import persistence.FileManager;
 
 import java.io.File;
 import java.util.*;
 import java.util.function.BooleanSupplier;
 
 /**
- * MVC Controller réteg - üzleti logika és adatkezelés koordinálása.
+ * MVC Controller réteg - üzleti logika és adatkezelés.
  */
 public class AppController {
     private static final String DATA_FILE_PATH = "data/offline-chat.dat";
@@ -142,7 +142,7 @@ public class AppController {
         var user = store.getUserByName(username);
         if (user == null) return false;
         try {
-            return hu.prog3.offlinechatprog3.util.PasswordUtil.checkPassword(plainPassword, user.getPasswordHash());
+            return util.PasswordUtil.checkPassword(plainPassword, user.getPasswordHash());
         } catch (Exception e) {
             return false;
         }

@@ -1,4 +1,4 @@
-package hu.prog3.offlinechatprog3.persistence;
+package persistence;
 
 import java.io.*;
 

@@ -1,14 +1,14 @@
-package hu.prog3.offlinechatprog3.persistence;
+package persistence;
 
-import hu.prog3.offlinechatprog3.model.Group;
-import hu.prog3.offlinechatprog3.model.Message;
-import hu.prog3.offlinechatprog3.model.User;
+import model.Group;
+import model.Message;
+import model.User;
 
 import java.io.Serializable;
 import java.util.*;
 
 /**
- * In-memory adattár felhasználók, barátok, csoportok és üzenetek tárolására.
+ * Adattár felhasználók, barátok, csoportok és üzenetek tárolására.
  */
 public class DataStore implements Serializable {
 
@@ -23,8 +23,6 @@ public class DataStore implements Serializable {
     private final Map<String, List<Message>> privateMessages = new HashMap<>();
     private final Map<UUID, List<Message>> groupMessages = new HashMap<>();
 
-    public DataStore() {
-    }
     
     /**
      * Új felhasználó regisztrálása.
@@ -113,10 +111,10 @@ public class DataStore implements Serializable {
         Set<String> incoming = incomingFriendRequests.get(username);
         if (incoming == null) return false;
         if (!incoming.remove(from)) return false;
-        // add friendship
+        //barát hozzáadás
         friends.get(username).add(from);
         friends.get(from).add(username);
-        // remove outgoing entry for the requester
+        // kimenő kérelem eltávolítása
         Set<String> outgoing = outgoingFriendRequests.get(from);
         if (outgoing != null) outgoing.remove(username);
         return true;

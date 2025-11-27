@@ -1,6 +1,6 @@
-package hu.prog3.offlinechatprog3.ui;
+package ui;
 
-import hu.prog3.offlinechatprog3.model.Message;
+import model.Message;
 
 import javax.swing.*;
 import java.time.ZoneId;

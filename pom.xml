@@ -53,7 +53,10 @@
                         <configuration>
                             <!-- Limit instrumentation strictly to our application packages to avoid JDK classes (Java 24) -->
                             <includes>
-                                <include>hu/prog3/**</include>
+                                <include>controller/**</include>
+                                <include>model/**</include>
+                                <include>persistence/**</include>
+                                <include>util/**</include>
                             </includes>
                         </configuration>
                     </execution>
@@ -82,7 +85,6 @@
                     <useModulePath>false</useModulePath>
                 </configuration>
             </plugin>
-            <!-- Shade plugin to build a runnable fat-jar for easy execution -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -96,14 +98,13 @@
                         <configuration>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>hu.prog3.offlinechatprog3.Main</mainClass>
+                                    <mainClass>Main</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
-            <!-- Pin Sonar Maven plugin version to avoid warnings (invoked via CLI) -->
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>

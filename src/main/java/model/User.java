@@ -1,4 +1,4 @@
-package hu.prog3.offlinechatprog3.model;
+package model;
 
 import java.io.Serializable;
 import java.util.UUID;
@@ -6,8 +6,6 @@ import java.util.UUID;
 /**
  * Felhasználót reprezentáló immutable (megváltozhatatlan) modell osztály.
  * Tartalmazza a felhasználó egyedi azonosítóját, felhasználónevét és a bcrypt hash-elt jelszavát.
- * 
- * @since 1.0
  */
 public class User implements Serializable {
 

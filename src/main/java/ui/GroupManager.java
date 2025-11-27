@@ -1,8 +1,10 @@
-package hu.prog3.offlinechatprog3.ui;
+package ui;
 
-import hu.prog3.offlinechatprog3.controller.AppController;
-import hu.prog3.offlinechatprog3.model.Permissions;
-import hu.prog3.offlinechatprog3.persistence.DataStore;
+import controller.AppController;
+import model.Permissions;
+import model.Message;
+import model.Group;
+import persistence.DataStore;
 
 import javax.swing.*;
 import java.awt.*;
@@ -90,14 +92,14 @@ public class GroupManager extends JDialog {
     private void showMessagesDialog() {
         GroupItem sel = requireSelectedGroup();
         if (sel == null) return;
-        if (!controller.hasGroupPermission(sel.id, username, hu.prog3.offlinechatprog3.model.Permissions.GROUP_DELETE_MESSAGES)) {
+        if (!controller.hasGroupPermission(sel.id, username, Permissions.GROUP_DELETE_MESSAGES)) {
             JOptionPane.showMessageDialog(this, UiMessages.NO_PERM_DELETE_MSG, UiMessages.WARN_TITLE, JOptionPane.WARNING_MESSAGE);
             return;
         }
         DataStore store = controller.getDataStore();
-        List<hu.prog3.offlinechatprog3.model.Message> msgs = store.getGroupMessages(sel.id);
+        List<Message> msgs = store.getGroupMessages(sel.id);
         DefaultListModel<MessageItem> model = new DefaultListModel<>();
-        for (hu.prog3.offlinechatprog3.model.Message m : msgs) {
+        for (Message m : msgs) {
             model.addElement(new MessageItem(m, store.getUsernameById(m.getSenderId())));
         }
         JList<MessageItem> list = new JList<>(model);
@@ -136,7 +138,7 @@ public class GroupManager extends JDialog {
     private static class MessageItem {
         final UUID id;
         final String display;
-        MessageItem(hu.prog3.offlinechatprog3.model.Message m, String sender) {
+        MessageItem(Message m, String sender) {
             this.id = m.getId();
             String who = sender == null ? "?" : sender;
             String ts = m.getTimestamp() == null ? "" : java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(java.time.ZoneId.systemDefault()).format(m.getTimestamp());
@@ -187,7 +189,6 @@ public class GroupManager extends JDialog {
         d.pack();
         d.setLocationRelativeTo(this);
 
-        // Extracted simple handlers to reduce method complexity
         add.addActionListener(ev -> handleAddMember(d, model, id));
         remove.addActionListener(ev -> handleRemoveMember(list, model, id));
         addRole.addActionListener(ev -> handleAddRole(d, id, model));
@@ -224,7 +225,7 @@ public class GroupManager extends JDialog {
      * @param groupId csoport UUID
      */
     private void handleRemoveMember(JList<String> list, DefaultListModel<String> model, UUID groupId) {
-        if (!controller.hasGroupPermission(groupId, username, hu.prog3.offlinechatprog3.model.Permissions.GROUP_REMOVE_MEMBER)) {
+        if (!controller.hasGroupPermission(groupId, username, Permissions.GROUP_REMOVE_MEMBER)) {
             JOptionPane.showMessageDialog(this, UiMessages.NO_PERM_REMOVE, UiMessages.WARN_TITLE, JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -311,7 +312,7 @@ public class GroupManager extends JDialog {
      */
     private void refreshMemberList(DefaultListModel<String> model, UUID groupId) {
         model.clear();
-        hu.prog3.offlinechatprog3.model.Group group = controller.getDataStore().getGroup(groupId);
+        Group group = controller.getDataStore().getGroup(groupId);
         if (group == null) return;
         
         for (Map.Entry<UUID, String> entry : group.getMemberRoles().entrySet()) {
@@ -343,7 +344,7 @@ public class GroupManager extends JDialog {
         String selectedUser = selectedEntry.contains(" (") ? selectedEntry.substring(0, selectedEntry.indexOf(" (")) : selectedEntry;
         
         // Dinamikusan lekérdezzük az elérhető szerepeket a Group-ból
-        hu.prog3.offlinechatprog3.model.Group group = controller.getDataStore().getGroup(groupId);
+        Group group = controller.getDataStore().getGroup(groupId);
         if (group == null) return;
         Set<String> roles = group.getRoles();
         String[] availableRoles = roles.toArray(new String[0]);

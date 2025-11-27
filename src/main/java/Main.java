@@ -1,7 +1,5 @@
-package hu.prog3.offlinechatprog3;
-
-import hu.prog3.offlinechatprog3.controller.AppController;
-import hu.prog3.offlinechatprog3.ui.LoginFrame;
+import controller.AppController;
+import ui.LoginFrame;
 
 import javax.swing.*;
 

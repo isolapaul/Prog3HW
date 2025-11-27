@@ -1,11 +1,9 @@
-package hu.prog3.offlinechatprog3;
-
-import hu.prog3.offlinechatprog3.controller.AppController;
-import hu.prog3.offlinechatprog3.controller.RegistrationResult;
-import hu.prog3.offlinechatprog3.model.Message;
-import hu.prog3.offlinechatprog3.model.Permissions;
-import hu.prog3.offlinechatprog3.persistence.DataStore;
-import hu.prog3.offlinechatprog3.util.PasswordUtil;
+import controller.AppController;
+import controller.RegistrationResult;
+import model.Message;
+import model.Permissions;
+import persistence.DataStore;
+import util.PasswordUtil;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 

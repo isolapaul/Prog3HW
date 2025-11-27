@@ -1,4 +1,4 @@
-package hu.prog3.offlinechatprog3.ui;
+package ui;
 
 /**
  * UI üzenet konstansok.

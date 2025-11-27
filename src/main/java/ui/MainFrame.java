@@ -1,9 +1,9 @@
-package hu.prog3.offlinechatprog3.ui;
+package ui;
 
-import hu.prog3.offlinechatprog3.controller.AppController;
-import hu.prog3.offlinechatprog3.model.Message;
-import hu.prog3.offlinechatprog3.persistence.DataStore;
-import hu.prog3.offlinechatprog3.model.Permissions;
+import controller.AppController;
+import model.Message;
+import persistence.DataStore;
+import model.Permissions;
 
 import javax.swing.*;
 import java.awt.*;
@@ -282,7 +282,7 @@ public class MainFrame extends JFrame {
     private void sendToGroup(String text) {
         GroupItem gi = requireSelectedGroup();
         if (gi == null) return;
-        if (!controller.hasGroupPermission(gi.id, username, hu.prog3.offlinechatprog3.model.Permissions.GROUP_SEND_MESSAGE)) {
+        if (!controller.hasGroupPermission(gi.id, username, Permissions.GROUP_SEND_MESSAGE)) {
             JOptionPane.showMessageDialog(MainFrame.this, UiMessages.NO_PERM_SEND_GROUP, UiMessages.WARN_TITLE, JOptionPane.WARNING_MESSAGE);
             return;
         }

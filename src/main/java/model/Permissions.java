@@ -1,11 +1,9 @@
-package hu.prog3.offlinechatprog3.model;
+package model;
 
 /**
  * Csoportos jogosultságokat definiáló konstans osztály.
  * Tartalmazza az összes elérhető jogosultság string azonosítóját.
  * Utility osztály - nem példányosítható.
- * 
- * @since 1.0
  */
 public final class Permissions {
 

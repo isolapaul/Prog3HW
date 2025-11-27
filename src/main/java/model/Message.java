@@ -1,4 +1,4 @@
-package hu.prog3.offlinechatprog3.model;
+package model;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -6,12 +6,10 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Üzenetet reprezentáló immutable (megváltozhatatlan) modell osztály.
+ * Üzenetet reprezentáló modell osztály.
  * Használható privát üzenetekhez és csoportos üzenetekhez egyaránt.
  * Minden üzenet tartalmaz egyedi azonosítót, küldő ID-t, beszélgetés/csoport ID-t,
  * tartalmat és időbélyeget.
- * 
- * @since 1.0
  */
 public class Message implements Serializable {
 

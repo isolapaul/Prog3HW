@@ -1,4 +1,4 @@
-package hu.prog3.offlinechatprog3.util;
+package util;
 
 import org.mindrot.jbcrypt.BCrypt;
 

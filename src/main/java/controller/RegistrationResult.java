@@ -1,4 +1,4 @@
-package hu.prog3.offlinechatprog3.controller;
+package controller;
 
 /**
  * Regisztrációs művelet eredménye.

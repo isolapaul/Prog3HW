@@ -1,8 +1,8 @@
-package hu.prog3.offlinechatprog3.ui;
+package ui;
 
-import hu.prog3.offlinechatprog3.controller.AppController;
-import hu.prog3.offlinechatprog3.util.PasswordUtil;
-import hu.prog3.offlinechatprog3.controller.RegistrationResult;
+import controller.AppController;
+import util.PasswordUtil;
+import controller.RegistrationResult;
 
 import javax.swing.*;
 import java.awt.*;

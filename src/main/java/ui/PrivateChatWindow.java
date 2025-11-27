@@ -1,7 +1,7 @@
-package hu.prog3.offlinechatprog3.ui;
+package ui;
 
-import hu.prog3.offlinechatprog3.controller.AppController;
-import hu.prog3.offlinechatprog3.model.Message;
+import controller.AppController;
+import model.Message;
 
 import java.util.List;
 

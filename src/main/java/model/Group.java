@@ -1,14 +1,12 @@
-package hu.prog3.offlinechatprog3.model;
+package model;
 
 import java.io.Serializable;
 import java.util.*;
 
 /**
  * Csoportos beszélgetést reprezentáló modell osztály.
- * Támogatja a szerepkör alapú jogosultságkezelést (Role-Based Access Control).
- * Alapértelmezett szerepek: Adminisztrátor, Résztvevő, Olvasó.
- * 
- * @since 1.0
+ * Támogatja a szerepkör alapú jogosultságkezelést.
+ * Alapértelmezett szerepek: Adminisztrátor, Résztvevő, Olvasó. 
  */
 public class Group implements Serializable {
 
@@ -21,13 +19,13 @@ public class Group implements Serializable {
     /** Csoport neve */
     private String name;
     
-    /** Csoport tagok és szerepeik (UUID → szerepnév) */
+    /** Csoport tagok és szerepeik */
     private Map<UUID, String> memberRoles = new HashMap<>();
     
-    /** Elérhető szerepek a csoportban */
+    /* Elérhető szerepek a csoportban */
     private Set<String> roles = new HashSet<>();
     
-    /** Szerepekhez tartozó jogosultságok (szerepnév → jogosultságok halmaza) */
+    /** Szerepekhez tartozó jogosultságok */
     private Map<String, Set<String>> rolePermissions = new HashMap<>();
     
     /** Alapértelmezett szerep: Adminisztrátor - teljes jogosultság */
@@ -41,10 +39,10 @@ public class Group implements Serializable {
 
     /**
      * Létrehoz egy új csoportot a megadott névvel.
-     * Automatikusan létrehozza az alapértelmezett szerepeket (Adminisztrátor, Résztvevő, Olvasó)
+     * Automatikusan létrehozza az alapértelmezett szerepeket
      * és beállítja a hozzájuk tartozó jogosultságokat.
      * 
-     * @param name a csoport neve (nem lehet null)
+     * @param name a csoport neve
      */
     public Group(String name) {
         this.id = UUID.randomUUID(); //egyedi ID
@@ -59,10 +57,9 @@ public class Group implements Serializable {
         rolePermissions.put(ROLE_READER, new HashSet<>());
     }
 
-    /**
+    /** 
      * Visszaadja a csoport egyedi azonosítóját.
-     * 
-     * @return a csoport UUID azonosítója
+     *  @return a csoport UUID azonosítója
      */
     public UUID getId() {
         return id;
@@ -70,7 +67,6 @@ public class Group implements Serializable {
 
     /**
      * Visszaadja a csoport nevét.
-     * 
      * @return a csoport neve
      */
     public String getName() {
@@ -79,8 +75,7 @@ public class Group implements Serializable {
 
     /**
      * Beállítja a csoport új nevét.
-     * 
-     * @param name az új név (nem lehet null)
+     * @param name az új név
      */
     public void setName(String name) {
         this.name = name;
@@ -88,7 +83,6 @@ public class Group implements Serializable {
 
     /**
      * Visszaadja a csoport tagjainak szerepeit tartalmazó map-et.
-     * 
      * @return map, ahol a kulcs a felhasználó UUID-ja, az érték pedig a szerepnév
      */
     public Map<UUID, String> getMemberRoles() {
@@ -97,7 +91,6 @@ public class Group implements Serializable {
 
     /**
      * Visszaadja a csoportban elérhető összes szerepet.
-     * 
      * @return a szerepnevek halmaza
      */
     public Set<String> getRoles() {
@@ -120,7 +113,7 @@ public class Group implements Serializable {
      * Beállítja egy adott szerep jogosultságait.
      * 
      * @param role a szerepnév
-     * @param perms a jogosultságok halmaza (pl. Permissions.GROUP_SEND_MESSAGE)
+     * @param perms a jogosultságok halmaza 
      * @throws IllegalArgumentException ha a szerep nem létezik a csoportban
      */
     public void setRolePermissions(String role, Set<String> perms) {
@@ -134,7 +127,7 @@ public class Group implements Serializable {
      * Visszaadja egy adott szerep jogosultságait.
      * 
      * @param role a szerepnév
-     * @return a jogosultságok halmaza (üres halmaz, ha a szerep nem létezik)
+     * @return a jogosultságok halmaza 
      */
     public Set<String> getRolePermissions(String role) {
         return new HashSet<>(rolePermissions.getOrDefault(role, Collections.emptySet()));
@@ -144,7 +137,7 @@ public class Group implements Serializable {
      * Hozzáad egy új tagot a csoporthoz a megadott szereppel.
      * 
      * @param userId a felhasználó UUID azonosítója
-     * @param role a tag szerepe (pl. "Adminisztrátor", "Résztvevő")
+     * @param role a tag szerepe 
      */
     public void addMember(UUID userId, String role) {
         memberRoles.put(userId, role);
@@ -186,7 +179,6 @@ public class Group implements Serializable {
 
     /**
      * Ellenőrzi, hogy egy felhasználó rendelkezik-e egy adott jogosultsággal a csoportban.
-     * A Permissions.ALL jogosultság minden más jogosultságot magában foglal.
      * 
      * @param userId a felhasználó UUID azonosítója
      * @param permission a vizsgálandó jogosultság (pl. Permissions.GROUP_SEND_MESSAGE)
