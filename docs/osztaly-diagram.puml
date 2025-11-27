@@ -114,38 +114,31 @@ package "util" {
     }
 }
 
-' ===== RELATIONSHIPS =====
+' Kapcsolatok
 
-' Main -> Controller
 Main ..> AppController : creates
 Main ..> LoginFrame : creates
 
-' Controller -> Model & Persistence
 AppController --> DataStore : uses
 AppController ..> RegistrationResult : returns
 AppController ..> FileManager : saves/loads
 
-' Persistence -> Model
 DataStore *-- User
 DataStore *-- Group
 DataStore *-- Message
 FileManager ..> DataStore : serializes
 
-' Model
 Group ..> Permissions : uses
 
-' UI -> Controller
 LoginFrame --> AppController
 MainFrame --> AppController
 BaseChatWindow --> AppController
 GroupManager --> AppController
 
-' UI relationships
 MainFrame ..> GroupManager : opens
 PrivateChatWindow --|> BaseChatWindow
 GroupChatWindow --|> BaseChatWindow
 
-' Util
 LoginFrame ..> PasswordUtil
 AppController ..> PasswordUtil
 
